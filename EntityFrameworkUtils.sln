@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EWSoftware.EntityFramework", "Source\EWSoftware.EntityFramework.csproj", "{FC644B37-2B11-4E80-AE42-C7047A4E0A44}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CC5B2F78-6305-4777-B757-4032BF34973C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		IgnoredWords.dic = IgnoredWords.dic
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbmlToEntityFrameworkConverter", "DbmlToEntityFrameworkConverter\DbmlToEntityFrameworkConverter.csproj", "{0FBA5CE8-AAF6-402C-8390-D32B97C4D209}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSQLTestApp", "LinqToSQLTestApp\LinqToSQLTestApp.csproj", "{BC677A3F-A23E-4069-B3AC-E9C3DC4A604B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFrameworkNet8TestApp", "EntityFrameworkNet8TestApp\EntityFrameworkNet8TestApp.csproj", "{B7147C70-50E8-4D0F-BDD8-CB53B428E632}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EntityFrameworkNet48TestApp", "EntityFrameworkNet48TestApp\EntityFrameworkNet48TestApp.csproj", "{97B95623-ABCE-4247-AAE3-F87630CE1F39}"
+EndProject
+Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "EFUtilsDocs", "EFUtilsDocs\EFUtilsDocs.shfbproj", "{B27AA8B4-D736-47A3-ACBD-D0EF15E7B3C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FC644B37-2B11-4E80-AE42-C7047A4E0A44} = {FC644B37-2B11-4E80-AE42-C7047A4E0A44}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC644B37-2B11-4E80-AE42-C7047A4E0A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC644B37-2B11-4E80-AE42-C7047A4E0A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC644B37-2B11-4E80-AE42-C7047A4E0A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC644B37-2B11-4E80-AE42-C7047A4E0A44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FBA5CE8-AAF6-402C-8390-D32B97C4D209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FBA5CE8-AAF6-402C-8390-D32B97C4D209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FBA5CE8-AAF6-402C-8390-D32B97C4D209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FBA5CE8-AAF6-402C-8390-D32B97C4D209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC677A3F-A23E-4069-B3AC-E9C3DC4A604B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC677A3F-A23E-4069-B3AC-E9C3DC4A604B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC677A3F-A23E-4069-B3AC-E9C3DC4A604B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC677A3F-A23E-4069-B3AC-E9C3DC4A604B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7147C70-50E8-4D0F-BDD8-CB53B428E632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7147C70-50E8-4D0F-BDD8-CB53B428E632}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7147C70-50E8-4D0F-BDD8-CB53B428E632}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7147C70-50E8-4D0F-BDD8-CB53B428E632}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97B95623-ABCE-4247-AAE3-F87630CE1F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97B95623-ABCE-4247-AAE3-F87630CE1F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97B95623-ABCE-4247-AAE3-F87630CE1F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97B95623-ABCE-4247-AAE3-F87630CE1F39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B27AA8B4-D736-47A3-ACBD-D0EF15E7B3C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B27AA8B4-D736-47A3-ACBD-D0EF15E7B3C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B27AA8B4-D736-47A3-ACBD-D0EF15E7B3C4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

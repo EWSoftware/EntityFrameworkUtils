@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Company>Eric Woodruff</Company>
+		<Product>EWSoftware Entity Framework Utilities</Product>
+		<Title>EWSoftware Entity Framework Utilities</Title>
+		<Copyright>Copyright (c) 2024, Eric Woodruff, All Rights Reserved</Copyright>
+		<NeutralLanguage>en</NeutralLanguage>
+		<Version>2024.12.29.0</Version>
+		<FileVersion>24.12.29.0</FileVersion>
+		<Description>This library adds various extension methods and SQL Server stored procedure support similar to LINQ to SQL to the Microsoft Entity Framework.  See the project website for the code, demos, and online help content.</Description>
+		<Authors>Eric Woodruff</Authors>
+		<PackageIconUrl>https://raw.githubusercontent.com/EWSoftware/EntityFrameworkUtils/master/Source/EntityFrameworkUtils.png</PackageIconUrl>
+		<PackageIcon>EntityFrameworkUtils.png</PackageIcon>
+		<RepositoryUrl>https://github.com/EWSoftware/EntityFrameworkUtils</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>entity framework SQL server stored procedure support</PackageTags>
+		<PackageProjectUrl>https://github.com/EWSoftware/EntityFrameworkUtils</PackageProjectUrl>
+		<PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+		<PackageReadmeFile>ReadMe.md</PackageReadmeFile>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>..\EntityFrameworkUtils.snk</AssemblyOriginatorKeyFile>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="ReadMe.md" Pack="True" PackagePath="\" />
+		<None Include="EntityFrameworkUtils.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="System.ComponentModel" />
+		<Using Include="System.ComponentModel.DataAnnotations" />
+		<Using Include="System.ComponentModel.DataAnnotations.Schema" />
+		<Using Include="System.Data" />
+		<Using Include="System.Data.Common" />
+		<Using Include="System.Diagnostics" />
+		<Using Include="System.Reflection" />
+		<Using Include="Microsoft.Data.SqlClient" />
+		<Using Include="Microsoft.EntityFrameworkCore" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.32" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" Condition="'$(TargetFramework)' == 'net8.0'" />
+	</ItemGroup>
+
+</Project>

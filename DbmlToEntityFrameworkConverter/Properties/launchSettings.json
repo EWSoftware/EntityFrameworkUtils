@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Net8Conversion": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\LinqToSQLTestApp\\Database\\DemoDatabase.dbml ..\\..\\..\\..\\EntityFrameworkNet8TestApp\\Conversion /paramPrefix:param /useFieldKeyword /nullableRefTypes /ef7orLater /contextNamespace:EntityFrameworkNet8TestApp.Database"
+    },
+    "Net48Conversion": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\LinqToSQLTestApp\\Database\\DemoDatabase.dbml ..\\..\\..\\..\\EntityFrameworkNet48TestApp\\Conversion /paramPrefix:param /contextNamespace:EntityFrameworkNet48TestApp.Database"
+    }
+  }
+}

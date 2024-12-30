@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Conversion\DemoDatabaseDataContext.cs" />
+    <Compile Remove="Conversion\DemoTable.cs" />
+    <Compile Remove="Conversion\ProductInfo.cs" />
+    <Compile Remove="Conversion\spCategoriesResult.cs" />
+    <Compile Remove="Conversion\spCompaniesResult.cs" />
+    <Compile Remove="Conversion\spProductSearchResult.cs" />
+    <Compile Remove="Conversion\StateCode.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Conversion\DemoDatabaseDataContext.cs" />
+    <None Include="Conversion\DemoTable.cs" />
+    <None Include="Conversion\ProductInfo.cs" />
+    <None Include="Conversion\spCategoriesResult.cs" />
+    <None Include="Conversion\spCompaniesResult.cs" />
+    <None Include="Conversion\spProductSearchResult.cs" />
+    <None Include="Conversion\StateCode.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Source\EWSoftware.EntityFramework.csproj" />
+  </ItemGroup>
+
+</Project>

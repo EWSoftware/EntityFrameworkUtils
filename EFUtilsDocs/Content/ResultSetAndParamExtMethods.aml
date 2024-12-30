@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="f818ea4c-f1c6-4bc0-b7f1-373bde857dd1" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>The following extension methods are used with the result sets of the query extension methods or the
+parameters passed to them.  See the extension method documentation for usage examples.</para>
+
+			<autoOutline excludeRelatedTopics="true" lead="none" />
+		</introduction>
+
+		<section address="ResultSet">
+			<title>Result Set Extension Methods</title>
+			<content>
+				<para>The following result set extension methods are available:</para>
+
+				<list class="bullet">
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToTrackingBindingList``1(System.Collections.Generic.IEnumerable{``0},Microsoft.EntityFrameworkCore.DbContext)</codeEntityReference>
+ - This converts an enumerable list of change tracking entities to a binding list that will notify the related
+ data context of additions, changes, and deletions.  The returned binding list is only suitable for binding to
+ Windows Forms controls.  Use the method below for WPF controls.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToTrackingCollection``1(System.Collections.Generic.IEnumerable{``0},Microsoft.EntityFrameworkCore.DbContext)</codeEntityReference>
+- This converts an enumerable list of change tracking entities to an observable collection that will notify the
+related data context of additions, changes, and deletions.  The returned observable collection is only suitable
+for use with WPF controls.  Use the method above for Windows Forms controls.</para>
+					</listItem>
+				</list>
+			</content>
+		</section>
+
+		<section address="ParameterValue">
+			<title>Parameter Value Extension Methods</title>
+			<content>
+				<para>The following parameter value extension methods are available:</para>
+
+				<list class="bullet">
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.NullIfEmpty(System.String)</codeEntityReference>
+- This is used to convert strings to null values if they are empty.  This is useful for passing string values to
+database context methods when the value needs to be passed or stored as a null value rather than an empty string.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.NullIfWhiteSpace(System.String)</codeEntityReference>
+- This is used to convert strings to null values if they are empty or all whitespace.  This is useful for passing
+string values to database context methods when the value needs to be passed or stored as a null value rather than
+an empty or whitespace string.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToStringOrNull(System.Object)</codeEntityReference>
+- This is used to convert an object to a string and return either the string value if not empty, or null if it is
+an empty string.  This is useful for passing object values to database context methods when the value needs to
+be passed or stored as a null value rather than an empty string.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToChar(System.String)</codeEntityReference>
+- This is used to convert a string value to a nullable <codeInline>Char</codeInline> by returning null if the
+string is null or empty or the first character of the string if not.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToNullable``1(``0)</codeEntityReference>
+- This is used to convert value types to null values if they are set to their default value for the type (i.e.
+zero for integers, <codeInline>DateTime.MinValue</codeInline> for date/times, etc).  This is useful for passing
+values to database context methods when the parameters needs to be passed or stored as a null value rather than a
+literal value if it is set to the default.</para>
+					</listItem>
+
+					<listItem>
+						<para><codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ToNullable``1(System.Object)</codeEntityReference>
+- This is used to convert objects to null values if they are equal to <codeInline>null</codeInline>,
+<codeInline>DBNull.Value</codeInline>, or the default value for the given type.  This is useful for passing
+values to database context methods when the parameters needs to be passed or stored as a null rather than
+<codeInline>DBNull.Value</codeInline> or the type's default value.</para>
+					</listItem>
+				</list>
+			</content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>

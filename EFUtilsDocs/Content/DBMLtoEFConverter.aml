@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="9bfd97fc-06aa-49a4-a663-df34f92ab78a" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>This topic describes how to use the DBML to Entity Framework conversion tool that is available for
+download at the project website.  It will read a LINQ to SQL DBML file and convert it to a fairly equivalent set
+of entity classes and a data context suitable for use with Entity Framework.  The converted code makes use of
+the data annotation attributes and extension methods in this library to allow for similar functionality related
+to stored procedures.  Some review and rework of the converted types and the code that uses them is still needed
+but it is a quick way to get up and running with Entity Framework without having to completely rewrite the LINQ
+to SQL data access code especially if you made significant use of stored procedures with it.</para>
+
+			<autoOutline excludeRelatedTopics="true" lead="none" />
+		</introduction>
+
+		<section address="UsingTheConverter">
+			<title>Using the Converter</title>
+			<content>
+				<para>The conversion tool is a .NET 8 command line utility.  The following command line options are
+available:</para>
+
+				<para>
+					<command>DbmlToEntityFrameworkConverter.exe <replaceable>PathToDbmlFile</replaceable>&#160;
+<replaceable>OutputFolder</replaceable></command><lineBreak/>
+<command>[<system>/contextNamespace:</system><replaceable>Context.Namespace</replaceable>]
+[<system>/entityNamespace:</system><replaceable>Entity.Namespace</replaceable>]</command><lineBreak/>
+<command>[<system>/schema:</system><replaceable>SchemaName</replaceable>]
+[<system>/paramPrefix:</system><replaceable>ParameterPrefix</replaceable>]</command><lineBreak/>
+<command>[<system>/useFieldKeyword</system>] [<system>/nullableRefTypes</system>] [<system>/ef7orLater</system>]</command></para>
+
+				<list class="bullet">
+					<listItem>
+						<para><legacyItalic>PathToDbmlFile</legacyItalic> is required and specifies the DBML file to convert.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>OutputFolder</legacyItalic> is required and specifies where the generated files
+will be stored.  It is suggested these be placed in a folder separate from any existing source files to prevent
+accidentally overwriting existing project code.  The converted files can be merged into the main project as they
+are reviewed.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/contextNamespace:Context.Namespace</legacyItalic> is optional.  If not
+specified, the context namespace from the DBML file is used if specified or <codeInline>Database</codeInline> if
+not.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/entityNamespace:Entity.Namespace</legacyItalic> is optional.  If not specified,
+the entity namespace from the DBML file is used if specified or the context namespace if not.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/schema:SchemaName</legacyItalic> is optional.  If not specified,
+<codeInline>dbo</codeInline> is used as the default schema.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/paramPrefix:ParameterPrefix</legacyItalic> is optional.  If not specified, no
+common stored procedure parameter prefix is defined.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/useFieldKeyword</legacyItalic> is optional (requires C# 13 preview or later).
+If not specified, backing fields will be generated for entity properties that use change tracking.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/nullableRefTypes</legacyItalic> is optional (requires C# 8 or later).  If not
+specified, defaults will not be added to non-nullable reference types and null forgiving operators will be
+omitted.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyItalic>/ef7orLater</legacyItalic> is optional (requires Entity Framework Core 7.0 or
+later).  This controls how certain elements such as key fields are rendered in the generated code.</para>
+					</listItem>
+
+				</list>
+
+				<para>The DBML file to convert and the output folder must be the first and second parameters
+respectively.  Optional parameters can appear in any order.</para>
+
+				<para>When conversion is completed, the output folder will contain a data context class file named after
+the DBML file data context and one class file for each entity type in the DBML file.  Table entities will be
+derived from the <codeEntityReference qualifyHint="false">T:EWSoftware.EntityFramework.ChangeTrackingEntity</codeEntityReference>
+type from the library.  It implements the necessary <codeInline>INotifyPropertyChanging</codeInline> and
+<codeInline>INotifyPropertyChanged</codeInline> interfaces to support change tracking.  Stored procedure result
+types are simple classes with properties for each column in the result set and no change tracking capabilities.</para>
+			</content>
+		</section>
+
+		<section address="ToDoNotes">
+			<title>To Do Notes</title>
+			<content>
+				<para>The generated data context and entity class files will contain various "To Do" notes that may need
+review to fix up issues or add additional code to make the classes usable.  Below is a summary of each of the To
+Do notes that may be seen.</para>
+
+				<definitionTable>
+					<definedTerm>TODO: Add or remove using statements as needed</definedTerm>
+					<definition>
+						<para>The converter adds a default set of using statements to each generated code file.  Remove or
+add to them as necessary.</para>
+					</definition>
+				
+					<definedTerm>TODO: Check <fictitiousUri>CodeFile.cs</fictitiousUri> for additional code for the
+entity/data context</definedTerm>
+					<definition>
+						<para>If a code file related to the data context or entity is found in the DBML file's folder, this
+To Do note will be added.  Check the indicated file for additional source code that may need to be added to the
+Entity Framework data context or entity to implement required features.</para>
+					</definition>
+				
+					<definedTerm>TODO: If you pluralize or otherwise change the entity property names...</definedTerm>
+					<definition>
+						<para>A commented out section of code is added to the data context's <codeInline>OnModelCreating</codeInline>
+override that allows keeping the underlying table names the same as their database counterparts if you change
+the related data context table entity property names for them (e.g., pluralizing them).</para>
+					</definition>
+
+					<definedTerm>TODO: If necessary define entity relationships here</definedTerm>
+					<definition>
+						<para>This comment is added to the data context's <codeInline>OnModelCreating</codeInline> override
+as a reminder to define any necessary relationships between the entities.  Currently, any relationships defined
+in the DBML file are only used to add properties to the entity types.</para>
+					</definition>
+
+					<definedTerm>TODO: This method has no parameters...</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods that have no parameters and
+return a result set.  Such methods can likely be removed in favor of adding a
+<codeInline>LoadAllStoredProcedureAttribute</codeInline> to the result set entity type and using the
+<codeInline>LoadAll&lt;TEntity&gt;()</codeInline> extension method instead.</para>
+					</definition>
+
+					<definedTerm>TODO: This method's parameters match the key on the result set type...</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods that have parameters matching
+the key on the result set entity type.  Such methods can likely be removed in favor of adding a
+<codeInline>LoadByKeyStoredProcedureAttribute</codeInline> to the result set entity type and using the
+<codeInline>LoadByKey&lt;TEntity&gt;()</codeInline> extension method instead.</para>
+					</definition>
+
+					<definedTerm>TODO: This method is used to insert entities...</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods that are used to insert a
+table entity.  Such methods can likely be removed in favor of adding an
+<codeInline>InsertEntityStoredProcedureAttribute</codeInline> to the entity type and using the
+<codeInline>InsertEntity&lt;TEntity&gt;()</codeInline> or <codeInline>SubmitChanges&lt;TEntity&gt;()</codeInline>
+extension method instead.</para>
+					</definition>
+
+					<definedTerm>TODO: This method is used to update entities...</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods that are used to update a
+table entity.  Such methods can likely be removed in favor of adding an
+<codeInline>UpdateEntityStoredProcedureAttribute</codeInline> to the entity type and using the
+<codeInline>UpdateEntity&lt;TEntity&gt;()</codeInline> or <codeInline>SubmitChanges&lt;TEntity&gt;()</codeInline>
+extension method instead.</para>
+					</definition>
+
+					<definedTerm>TODO: This method is used to delete entities...</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods that are used to delete a
+table entity.  Such methods can likely be removed in favor of adding a
+<codeInline>DeleteEntityStoredProcedureAttribute</codeInline> to the entity type and using the
+<codeInline>DeleteEntity&lt;TEntity&gt;()</codeInline> or <codeInline>SubmitChanges&lt;TEntity&gt;()</codeInline>
+extension method instead.</para>
+					</definition>
+
+				</definitionTable>
+			</content>
+		</section>
+
+		<section address="OtherReviewItems">
+			<title>Other Areas Needing Review</title>
+			<content>
+				<para>After conversion, any code that edits data using table entities with change tracking will need to
+be reviewed.  Calls to the old LINQ to SQL <codeInline>SubmitChanges</codeInline> method will need changing to
+the Entity Framework <codeInline>SaveChanges</codeInline> method or the library's <codeInline>SubmitChanges</codeInline>
+method if stored procedures were defined to handle the inserts, updates, and deletes.</para>
+
+				<para>Another potential change that may be needed is when enumerating the results of a stored procedure
+call.  The extension methods return an enumerable list and use a data reader.  As such, if two are enumerated at
+the same time, you will need to use <codeInline>ToList()</codeInline> on the outermost enumerable to prevent any
+subsequent simultaneous enumerations from failing due to multiple open data readers.</para>
+			</content>
+		</section>
+		
+		<section address="Examples">
+			<title>Example Conversions</title>
+			<content>
+				<para>The project website contains an example LINQ to SQL application and equivalent Entity Framework
+examples (.NET 8 and .NET 4.8).  The example applications do not do anything useful.  They just contains some
+common test cases for the conversion.</para>
+			
+				<list class="bullet">
+					<listItem>
+						<para><legacyBold>LINQToSQLTestApp</legacyBold> - This is the LINQ to SQL test application.  The
+<localUri>.\Database</localUri> folder contains the DBML file used for the test conversion.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyBold>EntityFrameworkNet48TestApp</legacyBold> - This is the .NET 4.8 Entity Framework
+test application.  The <localUri>.\Conversion</localUri> folder contains the data context and entity class files
+as generated by the conversion tool.  The <localUri>.\Database</localUri> folder contains the files after they
+have been reviewed and fixed up.  The forms can be compared to the LINQ to SQL versions to see changes made to
+them.</para>
+					</listItem>
+
+					<listItem>
+						<para><legacyBold>EntityFrameworkNet8TestApp</legacyBold> - This is the .NET 8.0 Entity Framework
+test application.  The <localUri>.\Conversion</localUri> folder contains the data context and entity class files
+as generated by the conversion tool.  The <localUri>.\Database</localUri> folder contains the files after they
+have been reviewed and fixed up.  The forms can be compared to the LINQ to SQL versions to see changes made to
+them.</para>
+					</listItem>
+
+				</list>
+			</content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>

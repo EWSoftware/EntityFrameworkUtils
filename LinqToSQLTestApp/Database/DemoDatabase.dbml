@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="C:\GH\EntityFrameworkUtils\DemoData.mdf" Class="DemoDatabaseDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=C:\GH\EntityFrameworkUtils\DemoData.mdf;Integrated Security=True" SettingsObjectName="LinqToSQLTestApp.Properties.Settings" SettingsPropertyName="DemoDatabase" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.StateCode" Member="StateCodes">
+    <Type Name="StateCode" Id="ID1">
+      <Column Name="State" Type="System.String" DbType="Char(2) NOT NULL" CanBeNull="false" />
+      <Column Name="StateDesc" Type="System.String" DbType="VarChar(20) NOT NULL" CanBeNull="false" />
+      <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" IsPrimaryKey="true" CanBeNull="false" IsVersion="true" />
+      <Column Name="IsInUse" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+    </Type>
+    <InsertFunction FunctionId="FunctionId1">
+      <Argument Parameter="paramState" Member="State" />
+      <Argument Parameter="paramStateDesc" Member="StateDesc" />
+    </InsertFunction>
+    <UpdateFunction FunctionId="FunctionId1">
+      <Argument Parameter="paramOldState" Member="State" Version="Original" />
+      <Argument Parameter="paramState" Member="State" />
+      <Argument Parameter="paramStateDesc" Member="StateDesc" />
+    </UpdateFunction>
+    <DeleteFunction FunctionId="FunctionId2">
+      <Argument Parameter="paramState" Member="State" Version="Original" />
+    </DeleteFunction>
+  </Table>
+  <Table Name="dbo.DemoTable" Member="DemoTables">
+    <Type Name="DemoTable" Id="ID2">
+      <Column Name="ListKey" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Label" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
+      <Column Name="TextValue" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
+      <Column Name="DateValue" Type="System.DateTime" DbType="DateTime2 NOT NULL" CanBeNull="false" />
+      <Column Name="BoolValue" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" CanBeNull="false" IsVersion="true" />
+    </Type>
+    <InsertFunction FunctionId="FunctionId3">
+      <Argument Parameter="paramListKey" Member="ListKey" />
+      <Argument Parameter="paramLabel" Member="Label" />
+      <Argument Parameter="paramTextValue" Member="TextValue" />
+      <Argument Parameter="paramDateValue" Member="DateValue" />
+      <Argument Parameter="paramBoolValue" Member="BoolValue" />
+    </InsertFunction>
+    <UpdateFunction FunctionId="FunctionId3">
+      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
+      <Argument Parameter="paramLabel" Member="Label" />
+      <Argument Parameter="paramTextValue" Member="TextValue" />
+      <Argument Parameter="paramDateValue" Member="DateValue" />
+      <Argument Parameter="paramBoolValue" Member="BoolValue" />
+    </UpdateFunction>
+    <DeleteFunction FunctionId="FunctionId4">
+      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
+    </DeleteFunction>
+  </Table>
+  <Table Name="dbo.ProductInfo" Member="ProductInfos">
+    <Type Name="ProductInfo" Id="ID3">
+      <Column Name="ProductID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="ProductName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="CategoryName" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+      <Column Name="CompanyName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="QuantityPerUnit" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="UnitPrice" Type="System.Decimal" DbType="Money NOT NULL" CanBeNull="false" />
+      <Column Name="UnitsInStock" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UnitsOnOrder" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="ReorderLevel" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="Discontinued" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" CanBeNull="false" IsVersion="true" />
+    </Type>
+    <InsertFunction FunctionId="FunctionId5">
+      <Argument Parameter="paramProductID" Member="ProductID" />
+      <Argument Parameter="paramProductName" Member="ProductName" />
+      <Argument Parameter="paramCategoryName" Member="CategoryName" />
+      <Argument Parameter="paramCompanyName" Member="CompanyName" />
+      <Argument Parameter="paramQuantityPerUnit" Member="QuantityPerUnit" />
+      <Argument Parameter="paramUnitPrice" Member="UnitPrice" />
+      <Argument Parameter="paramUnitsInStock" Member="UnitsInStock" />
+      <Argument Parameter="paramUnitsOnOrder" Member="UnitsOnOrder" />
+      <Argument Parameter="paramReorderLevel" Member="ReorderLevel" />
+      <Argument Parameter="paramDiscontinued" Member="Discontinued" />
+    </InsertFunction>
+    <UpdateFunction FunctionId="FunctionId5">
+      <Argument Parameter="paramProductID" Member="ProductID" Version="Original" />
+      <Argument Parameter="paramProductName" Member="ProductName" />
+      <Argument Parameter="paramCategoryName" Member="CategoryName" />
+      <Argument Parameter="paramCompanyName" Member="CompanyName" />
+      <Argument Parameter="paramQuantityPerUnit" Member="QuantityPerUnit" />
+      <Argument Parameter="paramUnitPrice" Member="UnitPrice" />
+      <Argument Parameter="paramUnitsInStock" Member="UnitsInStock" />
+      <Argument Parameter="paramUnitsOnOrder" Member="UnitsOnOrder" />
+      <Argument Parameter="paramReorderLevel" Member="ReorderLevel" />
+      <Argument Parameter="paramDiscontinued" Member="Discontinued" />
+    </UpdateFunction>
+    <DeleteFunction FunctionId="FunctionId6">
+      <Argument Parameter="paramProductID" Member="ProductID" Version="Original" />
+    </DeleteFunction>
+  </Table>
+  <Function Id="FunctionId1" Name="dbo.spStateCodeAddUpdate" Method="spStateCodeAddUpdate">
+    <Parameter Name="paramOldState" Type="System.String" DbType="Char(2)" />
+    <Parameter Name="paramState" Type="System.String" DbType="Char(2)" />
+    <Parameter Name="paramStateDesc" Type="System.String" DbType="VarChar(20)" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Id="FunctionId2" Name="dbo.spStateCodeDelete" Method="spStateCodeDelete">
+    <Parameter Name="paramState" Type="System.String" DbType="Char(2)" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Name="dbo.spStateCodes" Method="spStateCodes">
+    <ElementType IdRef="ID1" />
+  </Function>
+  <Function Name="dbo.spDemoTableData" Method="spDemoTableData">
+    <ElementType IdRef="ID2" />
+  </Function>
+  <Function Id="FunctionId4" Name="dbo.spDemoTableDelete" Method="spDemoTableDelete">
+    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Id="FunctionId3" Name="dbo.spDemoTableAddUpdate" Method="spDemoTableAddUpdate">
+    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" Direction="InOut" />
+    <Parameter Name="paramLabel" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramTextValue" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramDateValue" Type="System.DateTime" DbType="DateTime2" />
+    <Parameter Name="paramBoolValue" Type="System.Boolean" DbType="Bit" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Name="dbo.spProductInfo" Method="spProductInfo">
+    <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" />
+    <ElementType IdRef="ID3" />
+  </Function>
+  <Function Name="dbo.spProductSearch" Method="spProductSearch">
+    <Parameter Name="paramProductName" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramCategoryName" Type="System.String" DbType="VarChar(15)" />
+    <Parameter Name="paramCompanyName" Type="System.String" DbType="VarChar(40)" />
+    <ElementType Name="spProductSearchResult">
+      <Column Name="ProductID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ProductName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="CategoryName" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+      <Column Name="CompanyName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="UnitPrice" Type="System.Decimal" DbType="Money NOT NULL" CanBeNull="false" />
+      <Column Name="Discontinued" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+    </ElementType>
+  </Function>
+  <Function Id="FunctionId6" Name="dbo.spProductDelete" Method="spProductDelete">
+    <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Id="FunctionId5" Name="dbo.spProductAddUpdate" Method="spProductAddUpdate">
+    <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" Direction="InOut" />
+    <Parameter Name="paramProductName" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramCategoryName" Type="System.String" DbType="VarChar(15)" />
+    <Parameter Name="paramCompanyName" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramQuantityPerUnit" Type="System.String" DbType="VarChar(20)" />
+    <Parameter Name="paramUnitPrice" Type="System.Decimal" DbType="Money" />
+    <Parameter Name="paramUnitsInStock" Type="System.Int16" DbType="SmallInt" />
+    <Parameter Name="paramUnitsOnOrder" Type="System.Int16" DbType="SmallInt" />
+    <Parameter Name="paramReorderLevel" Type="System.Int16" DbType="SmallInt" />
+    <Parameter Name="paramDiscontinued" Type="System.Boolean" DbType="Bit" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Name="dbo.spCategories" Method="spCategories">
+    <ElementType Name="spCategoriesResult">
+      <Column Name="CategoryName" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
+    </ElementType>
+  </Function>
+  <Function Name="dbo.spCompanies" Method="spCompanies">
+    <ElementType Name="spCompaniesResult">
+      <Column Name="CompanyName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+    </ElementType>
+  </Function>
+</Database>

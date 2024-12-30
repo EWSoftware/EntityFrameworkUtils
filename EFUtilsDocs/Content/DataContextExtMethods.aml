@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="9ce27e28-5613-49fb-a98c-38c289f7905e" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>This topic describes the general data context extension methods.</para>
+
+			<autoOutline excludeRelatedTopics="true" lead="none" />
+		</introduction>
+
+		<section address="NoTracking">
+			<title>NoTracking</title>
+			<content>
+				<para>This extension method is used to turn off query tracking in a data context when constructed or
+later.  This can improve performance if all you are doing is reading data without any updates.  It can be chained
+together with the <codeInline>Open</codeInline> extension method described below to open the connection at the
+same time.</para>
+
+				<code language="csharp">
+using var dataContext = new MyDbContext().NoTracking();
+
+... Execute commands ...
+
+using var dataContext = new MyDbContext().NoTracking().Open();
+
+... Execute commands ...
+				</code>
+			</content>
+		</section>
+
+		<section address="Open">
+			<title>Open</title>
+			<content>
+				<para>This extension method is used to open a connection on a data context when constructed or later.  It
+can be chained together with the <codeInline>NoTracking</codeInline> extension method described above to turn off
+change tracking at the same time.</para>
+
+				<code language="csharp">
+using var dataContext = new MyDbContext().Open();
+
+... Execute commands ...
+
+using var dataContext = new MyDbContext().NoTracking().Open();
+
+... Execute commands ...
+				</code>
+			</content>
+		</section>
+
+		<section address="HasChanges">
+			<title>HasChanges</title>
+			<content>
+				<para>This extension method can be used to see if a data context has any unsaved changes.</para>
+				
+				<code language="cs">
+if(dataContext.HasChanges())
+    dataContext.SaveChanges();
+				</code>
+			</content>
+		</section>
+
+		<section address="GetCommand">
+			<title>GetCommand</title>
+			<content>
+				<para>This extension method is used to get a command object in a state ready to execute the specified
+command text on the given data context.  The command will be associated with the connection from the data context
+instance on which this method is called with the command timeout set to the value from the data context if one
+has been set.  The command text can be a stored procedure with or without parameters or a literal SQL statement.
+The returned command is ready to execute or modify further with parameters.  This is useful for situations in
+which a <codeInline>SqlDataReader</codeInline> is needed, you need more control when executing a stored
+procedure, or the stored procedure returns multiple result sets.</para>
+				
+				<code language="cs">
+using var dataContext = new MyDbContext().NoTracking();
+
+// Set up the daily schedule command and data adapter
+var cmdDailySchedule = dc.GetCommand("spDailyScheduleInfo",
+    new SqlParameter("@paramBidGroup", SqlDbType.Char, 4),
+    new SqlParameter("@paramDate", SqlDbType.DateTime));
+
+var daDailySchedule = new SqlDataAdapter(cmdDailySchedule);
+				</code>
+			</content>
+		</section>
+
+		<section address="CheckAndUpdateKeys">
+			<title>CheckAndUpdateKeys</title>
+			<content>
+				<para>This extension method is used to check for null keys or incomplete rows added by controls and
+either remove them or update them based on the passed in delegate methods.  In certain cases, some list controls
+like data grids add a temporary row for new additions.  If the row is left without saving changes or the changes
+are cancelled, the row is not always removed and still exists when changes are saved.  Because it has null keys
+or missing values, it should not be kept.  This extension method can be used to find such rows and remove them.
+It can also be used to update keys or other fields in new or existing rows if necessary.</para>
+
+				<para>The <codeInline>nullKeyCheck</codeInline> function delegate is used to check for these incomplete
+rows.  If it returns true, the row is assumed to be an empty row and is detached.  If it returns false or is not
+specified, the <codeInline>updateKeys</codeInline> action delegate is called to update keys or other fields as
+needed.  If one is not specified, no further action is taken.</para>
+
+				<code language="csharp">
+// If a list control added a row but left it incomplete, delete it.  If not, update the parent key.
+dataContext.CheckAndUpdateKeys&lt;ChildTable&gt;(
+    (entity, state) => state == EntityState.Added &amp;&amp; entity.GroupId == null,
+    (entity, state) => entity.ParentId = parent.ParentId);
+				</code>
+			</content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
+		</relatedTopics>
+	</developerConceptualDocument>
+</topic>
