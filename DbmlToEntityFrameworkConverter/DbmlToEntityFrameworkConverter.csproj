@@ -8,8 +8,8 @@
 		<Title>DBML to Entity Framework Converter</Title>
 		<Copyright>Copyright (c) 2024, Eric Woodruff, All Rights Reserved</Copyright>
 		<NeutralLanguage>en</NeutralLanguage>
-		<Version>2024.12.29.0</Version>
-		<FileVersion>24.12.29.0</FileVersion>
+		<Version>2024.12.30.0</Version>
+		<FileVersion>24.12.30.0</FileVersion>
 		<Description>This utility is used to convert LINQ to SQL DBML file definitions to rough equivalents of their Entity Framework counterparts.</Description>
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>..\EntityFrameworkUtils.snk</AssemblyOriginatorKeyFile>

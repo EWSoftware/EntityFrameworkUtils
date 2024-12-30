@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 12/26/2024
+// Updated : 12/29/2024
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -128,6 +128,59 @@ namespace EWSoftware.EntityFramework
             command.Parameters.Add(new SqlParameter("@___returnValue", SqlDbType.Int) { Direction = ParameterDirection.ReturnValue });
 
             return inOutParams;
+        }
+
+        /// <summary>
+        /// Given an entity type and the properties from it, this will return an enumerable list of the key
+        /// fields.
+        /// </summary>
+        /// <param name="dataContext">The data context</param>
+        /// <param name="entityType">The entity type</param>
+        /// <param name="properties">An enumerable list of property information for the entity type</param>
+        /// <returns>An enumerable list of the property names that are marked as the primary key or key fields
+        /// on the entity.</returns>
+        private static IEnumerable<string> DetermineKeyProperties(DbContext dataContext, Type entityType,
+          IEnumerable<PropertyInfo> properties)
+        {
+            var keys = dataContext.Model.FindEntityType(entityType)?.FindPrimaryKey()?.Properties.Select(
+                p => p.Name).ToList();
+
+            if((keys?.Count ?? 0) != 0)
+            {
+                foreach(var key in keys!)
+                    yield return key;
+            }
+
+#if !NETSTANDARD2_0
+            var primaryKey = entityType.GetCustomAttributes<PrimaryKeyAttribute>().FirstOrDefault();
+
+            if(primaryKey != null)
+            {
+                foreach(var key in primaryKey.PropertyNames)
+                    yield return key;
+            }
+            else
+            {
+#endif
+            bool hasKey = false;
+
+                // If there is no primary key attribute, get the names of all properties with a key attribute
+                foreach(var p in properties)
+                {
+                    var keyAttr = p.GetCustomAttributes<KeyAttribute>().FirstOrDefault();
+
+                    if(keyAttr != null)
+                    {
+                        hasKey = true;
+                        yield return p.Name;
+                    }
+                }
+
+                if(!hasKey)
+                    throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
+#if !NETSTANDARD2_0
+            }
+#endif
         }
 
         /// <summary>
@@ -582,16 +635,11 @@ namespace EWSoftware.EntityFramework
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
 
-            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
-
-            var keys = dataContext.Model.FindEntityType(entityType)?.FindPrimaryKey()?.Properties.Select(
-                p => p.Name).ToList();
-
             // Get the primary key for the entity type
-            if((keys?.Count ?? 0) == 0)
-                throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
+            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
+            var keys = DetermineKeyProperties(dataContext, entityType, properties.Values).ToList();
 
-            if(keys!.Count != parameters.Length)
+            if(keys.Count != parameters.Length)
             {
                 throw new InvalidOperationException($"The number of keys specified on the entity ({keys.Count}) " +
                     $"does not match the number of parameters passed ({parameters.Length})");
@@ -730,15 +778,11 @@ namespace EWSoftware.EntityFramework
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
 
-            var properties = entityType.GetProperties();
             var inOutParams = new List<(PropertyInfo Property, SqlParameter Parameter)>();
 
-            var keys = dataContext.Model.FindEntityType(entityType)?.FindPrimaryKey()?.Properties.Select(
-                p => p.Name).ToList();
-
             // Get the primary key for the entity type
-            if((keys?.Count ?? 0) == 0)
-                throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
+            var properties = entityType.GetProperties();
+            var keys = DetermineKeyProperties(dataContext, entityType, properties).ToList();
 
             // Add a parameter for each public property unless it is ignored for updates
             foreach(var p in properties)
@@ -760,7 +804,7 @@ namespace EWSoftware.EntityFramework
                     // If it's a time stamp or a single key column that looks like an identity column, make it an
                     // input/output parameter.  Primary keys with multiple columns or non-integer keys are not
                     // assumed to be output parameters.
-                    if(timestamp != null || (keys!.Count == 1 && param.SqlDbType == SqlDbType.Int && keys[0] == p.Name))
+                    if(timestamp != null || (keys.Count == 1 && param.SqlDbType == SqlDbType.Int && keys[0] == p.Name))
                     {
                         param.Direction = ParameterDirection.InputOutput;
                         inOutParams.Add((p, param));
@@ -986,16 +1030,10 @@ namespace EWSoftware.EntityFramework
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
 
+            // Get the primary key for the entity type and add a parameter for each key field
             var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
 
-            var keys = dataContext.Model.FindEntityType(entityType)?.FindPrimaryKey()?.Properties.Select(
-                p => p.Name).ToList();
-
-            // Get the primary key for the entity type and add a parameter for each key field
-            if((keys?.Count ?? 0) == 0)
-                throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
-
-            foreach(string key in keys!)
+            foreach(string key in DetermineKeyProperties(dataContext, entityType, properties.Values))
             {
                 if(!properties.TryGetValue(key, out var p))
                     throw new InvalidOperationException($"The key property {key} was not found on the entity");

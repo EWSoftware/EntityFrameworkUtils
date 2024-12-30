@@ -142,6 +142,16 @@ the key on the result set entity type.  Such methods can likely be removed in fa
 <codeInline>LoadByKeyStoredProcedureAttribute</codeInline> to the result set entity type and using the
 <codeInline>LoadByKey&lt;TEntity&gt;()</codeInline> extension method instead.</para>
 					</definition>
+					
+					<definedTerm>TODO: All of this method's parameters match properties on the result set type....</definedTerm>
+					<definition>
+						<para>This comment is added to data context stored procedure methods in which all parameters match
+properties on the stored procedure result set entity type.  Such methods can likely be removed in favor of adding
+a <codeInline>LoadByKeyStoredProcedureAttribute</codeInline> to the result set entity type and using the
+<codeInline>LoadByKey&lt;TEntity&gt;()</codeInline> extension method instead if the corresponding properties are
+marked as the primary key.  Note that the properties don't necessarily have to be an actual key, it just satisfies
+the requirements for the extension method to be used.</para>
+					</definition>
 
 					<definedTerm>TODO: This method is used to insert entities...</definedTerm>
 					<definition>

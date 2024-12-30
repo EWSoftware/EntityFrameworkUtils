@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : Program.cs
 // Author  : Eric Woodruff
-// Updated : 12/19/2024
+// Updated : 12/30/2024
 //
 // This file contains a utility used to convert LINQ to SQL DBML file definitions to rough equivalents of their
 // Entity Framework counterparts.
@@ -618,17 +618,32 @@ namespace {contextNamespace}
                     {
                         var keys = new HashSet<string>(f.ResultSetType.Properties.Where(
                             p => p.IsPrimaryKey).Select(p => p.PropertyName), StringComparer.OrdinalIgnoreCase);
+                        var parameters = new HashSet<string>(f.Parameters.Select(p => p.ParameterName),
+                            StringComparer.OrdinalIgnoreCase);
 
                         if(keys.Count != 0)
                         {
-                            var parameters = new HashSet<string>(f.Parameters.Select(p => p.ParameterName),
-                                StringComparer.OrdinalIgnoreCase);
-
                             if(keys.Count == parameters.Count && !keys.Except(parameters, StringComparer.OrdinalIgnoreCase).Any())
                             {
                                 sw.WriteLine("        // TODO: This method's parameters match the key on the result set type.  You");
                                 sw.WriteLine("        // may be able to remove it and add a LoadByKeyStoredProcedureAttribute to the ");
                                 sw.WriteLine("        // result set type and use the LoadByKey<TEntity>() extension method instead.");
+                            }
+                        }
+                        else
+                        {
+                            // Check for cases where all function parameters match properties on the result set
+                            // type.  In such cases, it's still a candidate for LoadByKey if the properties are
+                            // marked as the primary key on the stored procedure type.
+                            var allProps = new HashSet<string>(f.ResultSetType.Properties.Select(
+                                p => p.PropertyName), StringComparer.OrdinalIgnoreCase);
+
+                            if(parameters.All(p => allProps.Contains(p)))
+                            {
+                                sw.WriteLine("        // TODO: All of this method's parameters match properties on the result set type.");
+                                sw.WriteLine("        // You may be able to remove it and add a LoadByKeyStoredProcedureAttribute to");
+                                sw.WriteLine("        // the result set type and use the LoadByKey<TEntity>() extension method instead ");
+                                sw.WriteLine("        // if the corresponding properties are marked as the primary key.");
                             }
                         }
                     }
