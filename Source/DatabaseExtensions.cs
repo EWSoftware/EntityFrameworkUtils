@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 12/29/2024
+// Updated : 02/15/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -11,7 +11,9 @@
 // 11/22/2024  EFW  Created the code
 //===============================================================================================================
 
+using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 using EWSoftware.EntityFramework.DataAnnotations;
 
@@ -111,12 +113,18 @@ namespace EWSoftware.EntityFramework
                     // using any default value assigned to the parameter.
                     var p = new SqlParameter($"@{spName?.ParameterNamePrefix ?? contextParamPrefix?.Prefix}{columnName?.Name ?? mp.Name}",
                         value ?? DBNull.Value);
-                    p.SetParameterType();
+                    p.SetParameterType(mp.ParameterType);
 
                     // If the method parameter is by reference, make the SQL parameter input/output
                     if(mp.ParameterType.IsByRef)
                     {
                         p.Direction = ParameterDirection.InputOutput;
+
+                        // For nulls, the size must be set for output parameters or it will fail.  We just pick
+                        // an arbitrary large size.
+                        if(p.Value == DBNull.Value)
+                            p.Size = Int32.MaxValue;
+
                         inOutParams.Add((mp.Name!, idx));
                     }
 
@@ -149,38 +157,41 @@ namespace EWSoftware.EntityFramework
             {
                 foreach(var key in keys!)
                     yield return key;
-            }
 
-#if !NETSTANDARD2_0
-            var primaryKey = entityType.GetCustomAttributes<PrimaryKeyAttribute>().FirstOrDefault();
-
-            if(primaryKey != null)
-            {
-                foreach(var key in primaryKey.PropertyNames)
-                    yield return key;
             }
             else
             {
-#endif
-            bool hasKey = false;
-
-                // If there is no primary key attribute, get the names of all properties with a key attribute
-                foreach(var p in properties)
-                {
-                    var keyAttr = p.GetCustomAttributes<KeyAttribute>().FirstOrDefault();
-
-                    if(keyAttr != null)
-                    {
-                        hasKey = true;
-                        yield return p.Name;
-                    }
-                }
-
-                if(!hasKey)
-                    throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
 #if !NETSTANDARD2_0
-            }
+                var primaryKey = entityType.GetCustomAttributes<PrimaryKeyAttribute>().FirstOrDefault();
+
+                if(primaryKey != null)
+                {
+                    foreach(var key in primaryKey.PropertyNames)
+                        yield return key;
+                }
+                else
+                {
 #endif
+                    bool hasKey = false;
+
+                    // If there is no primary key attribute, get the names of all properties with a key attribute
+                    foreach(var p in properties)
+                    {
+                        var keyAttr = p.GetCustomAttributes<KeyAttribute>().FirstOrDefault();
+
+                        if(keyAttr != null)
+                        {
+                            hasKey = true;
+                            yield return p.Name;
+                        }
+                    }
+
+                    if(!hasKey)
+                        throw new NotSupportedException("No primary key or key property is defined on the specified entity type");
+#if !NETSTANDARD2_0
+                }
+#endif
+            }
         }
 
         /// <summary>
@@ -197,15 +208,24 @@ namespace EWSoftware.EntityFramework
                 value = null;
             else
             {
-                // Character values can be returned as single character strings.  If this looks like the case,
-                // get the first character of the string to avoid an exception.  If the string is empty, use a
-                // null character.
-                if(value != null && (propInfo.PropertyType == typeof(char) ||
-                  propInfo.PropertyType == typeof(char?)) && value.GetType() == typeof(string))
+                if(value != null)
                 {
-                    string stringValue = (string)value;
+                    // Character values can be returned as single character strings.  If this looks like the case,
+                    // get the first character of the string to avoid an exception.  If the string is empty, use a
+                    // null character.
+                    if((propInfo.PropertyType == typeof(char) || propInfo.PropertyType == typeof(char?)) &&
+                      value.GetType() == typeof(string))
+                    {
+                        string stringValue = (string)value;
 
-                    value = (stringValue.Length != 0) ? stringValue[0] : '\x0';
+                        value = (stringValue.Length != 0) ? stringValue[0] : '\x0';
+                    }
+                    else
+                    {
+                        // XML values need to be converted from a string
+                        if(propInfo.PropertyType == typeof(XElement) && value.GetType() == typeof(string))
+                            value = XElement.Parse((string)value);
+                    }
                 }
             }
 
@@ -229,13 +249,9 @@ namespace EWSoftware.EntityFramework
         /// This is used to infer the SQL database type from the value type
         /// </summary>
         /// <param name="parameter">The SQL parameter in which to set the SQL type</param>
-        private static void SetParameterType(this SqlParameter parameter)
+        /// <param name="valueType">The property value type</param>
+        private static void SetParameterType(this SqlParameter parameter, Type valueType)
         {
-            if(parameter.Value == null || parameter.Value == DBNull.Value)
-                return;
-
-            Type valueType = parameter.Value.GetType();
-
             // If it's a nullable type, get the type of the type parameter
             if(valueType.IsGenericType)
                 valueType = valueType.GetGenericArguments()[0];
@@ -287,6 +303,20 @@ namespace EWSoftware.EntityFramework
                     break;
 
                 default:
+                    // XML and byte arrays requires special handling
+                    if(valueType == typeof(XElement))
+                    {
+                        parameter.SqlDbType = SqlDbType.Xml;
+
+                        if(parameter.Value != null && parameter.Value != DBNull.Value)
+                            parameter.Value = new SqlXml(((XElement)parameter.Value).CreateReader());
+                    }
+                    else
+                    {
+                        if(valueType == typeof(byte[]))
+                            parameter.SqlDbType = SqlDbType.VarBinary;
+                    }
+
                     // Anything else we'll leave alone and let it infer
                     break;
             }
@@ -676,7 +706,7 @@ namespace EWSoftware.EntityFramework
                 // using any default value assigned to the parameter.
                 var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? key}",
                     value ?? DBNull.Value);
-                param.SetParameterType();
+                param.SetParameterType(p.PropertyType);
                 command.Parameters.Add(param);
             }
 
@@ -799,7 +829,7 @@ namespace EWSoftware.EntityFramework
                     // using any default value assigned to the parameter.
                     var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? p.Name}",
                         p.GetValue(entity) ?? DBNull.Value);
-                    param.SetParameterType();
+                    param.SetParameterType(p.PropertyType);
 
                     // If it's a time stamp or a single key column that looks like an identity column, make it an
                     // input/output parameter.  Primary keys with multiple columns or non-integer keys are not
@@ -927,7 +957,7 @@ namespace EWSoftware.EntityFramework
                     // using any default value assigned to the parameter.
                     var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? p.Name}",
                         p.GetValue(entity) ?? DBNull.Value);
-                    param.SetParameterType();
+                    param.SetParameterType(p.PropertyType);
 
                     // If it's a time stamp make it an input/output parameter
                     if(timestamp != null)
@@ -1045,7 +1075,7 @@ namespace EWSoftware.EntityFramework
                 // using any default value assigned to the parameter.
                 var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? key}",
                     p.GetValue(entity) ?? DBNull.Value);
-                param.SetParameterType();
+                param.SetParameterType(p.PropertyType);
                 command.Parameters.Add(param);
             }
 

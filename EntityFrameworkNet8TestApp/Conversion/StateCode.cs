@@ -5,6 +5,7 @@
 
 // TODO: Add or remove using statements as needed
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using EWSoftware.EntityFramework;
@@ -12,7 +13,7 @@ using EWSoftware.EntityFramework.DataAnnotations;
 
 namespace EntityFrameworkNet8TestApp.Database
 {
-    // TODO: Check ..\..\..\..\LinqToSQLTestApp\Database\StateCode.cs for additional code for the entity
+    // TODO: Check Database\StateCode.cs for additional code for the entity
     [InsertEntityStoredProcedure("spStateCodeAddUpdate"), UpdateEntityStoredProcedure("spStateCodeAddUpdate"), DeleteEntityStoredProcedure("spStateCodeDelete")]
     public sealed class StateCode : ChangeTrackingEntity
     {

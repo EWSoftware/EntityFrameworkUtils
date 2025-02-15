@@ -5,6 +5,7 @@
 
 // TODO: Add or remove using statements as needed
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using EWSoftware.EntityFramework;

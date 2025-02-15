@@ -45,8 +45,19 @@ namespace EntityFrameworkNet48TestApp
             lastModifiedDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             btncDelete = new DataGridViewButtonColumn();
             bsDemoData = new BindingSource(components);
+            btnSetXml = new Button();
+            btnSetGuid = new Button();
+            pbImage = new PictureBox();
+            btnSetImage = new Button();
+            label1 = new Label();
+            txtXmlValue = new TextBox();
+            label2 = new Label();
+            label3 = new Label();
+            txtGuidValue = new TextBox();
+            btnClearValues = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvDemoData).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bsDemoData).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbImage).BeginInit();
             this.SuspendLayout();
             // 
             // btnClose
@@ -56,7 +67,7 @@ namespace EntityFrameworkNet48TestApp
             btnClose.Location = new Point(782, 509);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(88, 32);
-            btnClose.TabIndex = 2;
+            btnClose.TabIndex = 11;
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = true;
             btnClose.Click += this.btnClose_Click;
@@ -67,7 +78,7 @@ namespace EntityFrameworkNet48TestApp
             btnSave.Location = new Point(12, 509);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(88, 32);
-            btnSave.TabIndex = 1;
+            btnSave.TabIndex = 6;
             btnSave.Text = "&Save";
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Click += this.btnSave_Click;
@@ -83,7 +94,7 @@ namespace EntityFrameworkNet48TestApp
             dgvDemoData.Name = "dgvDemoData";
             dgvDemoData.RowHeadersWidth = 51;
             dgvDemoData.RowTemplate.Height = 32;
-            dgvDemoData.Size = new Size(858, 491);
+            dgvDemoData.Size = new Size(858, 341);
             dgvDemoData.TabIndex = 0;
             dgvDemoData.CellContentClick += this.dgvDemoData_CellContentClick;
             // 
@@ -165,11 +176,126 @@ namespace EntityFrameworkNet48TestApp
             // bsDemoData
             // 
             bsDemoData.DataSource = typeof(Database.DemoTable);
+            bsDemoData.CurrentChanged += this.bsDemoData_CurrentChanged;
+            // 
+            // btnSetXml
+            // 
+            btnSetXml.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetXml.Location = new Point(106, 509);
+            btnSetXml.Name = "btnSetXml";
+            btnSetXml.Size = new Size(88, 32);
+            btnSetXml.TabIndex = 7;
+            btnSetXml.Text = "Set &XML";
+            btnSetXml.UseVisualStyleBackColor = true;
+            btnSetXml.Click += this.btnSetXml_Click;
+            // 
+            // btnSetGuid
+            // 
+            btnSetGuid.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetGuid.Location = new Point(200, 509);
+            btnSetGuid.Name = "btnSetGuid";
+            btnSetGuid.Size = new Size(88, 32);
+            btnSetGuid.TabIndex = 8;
+            btnSetGuid.Text = "Set &GUID";
+            btnSetGuid.UseVisualStyleBackColor = true;
+            btnSetGuid.Click += this.btnSetGuid_Click;
+            // 
+            // pbImage
+            // 
+            pbImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            pbImage.BorderStyle = BorderStyle.FixedSingle;
+            pbImage.Location = new Point(770, 359);
+            pbImage.Name = "pbImage";
+            pbImage.Size = new Size(100, 100);
+            pbImage.TabIndex = 7;
+            pbImage.TabStop = false;
+            // 
+            // btnSetImage
+            // 
+            btnSetImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetImage.Location = new Point(294, 509);
+            btnSetImage.Name = "btnSetImage";
+            btnSetImage.Size = new Size(88, 32);
+            btnSetImage.TabIndex = 9;
+            btnSetImage.Text = "Set &Image";
+            btnSetImage.UseVisualStyleBackColor = true;
+            btnSetImage.Click += this.btnSetImage_Click;
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            label1.Location = new Point(12, 359);
+            label1.Name = "label1";
+            label1.Size = new Size(111, 25);
+            label1.TabIndex = 1;
+            label1.Text = "XML Value";
+            label1.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // txtXmlValue
+            // 
+            txtXmlValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtXmlValue.Location = new Point(129, 359);
+            txtXmlValue.Multiline = true;
+            txtXmlValue.Name = "txtXmlValue";
+            txtXmlValue.ReadOnly = true;
+            txtXmlValue.ScrollBars = ScrollBars.Both;
+            txtXmlValue.Size = new Size(519, 100);
+            txtXmlValue.TabIndex = 2;
+            // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            label2.Location = new Point(653, 360);
+            label2.Name = "label2";
+            label2.Size = new Size(111, 25);
+            label2.TabIndex = 3;
+            label2.Text = "Image Value";
+            label2.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // label3
+            // 
+            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            label3.Location = new Point(12, 466);
+            label3.Name = "label3";
+            label3.Size = new Size(111, 25);
+            label3.TabIndex = 4;
+            label3.Text = "GUID Value";
+            label3.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // txtGuidValue
+            // 
+            txtGuidValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtGuidValue.Location = new Point(129, 465);
+            txtGuidValue.Name = "txtGuidValue";
+            txtGuidValue.ReadOnly = true;
+            txtGuidValue.Size = new Size(519, 27);
+            txtGuidValue.TabIndex = 5;
+            // 
+            // btnClearValues
+            // 
+            btnClearValues.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnClearValues.Location = new Point(388, 509);
+            btnClearValues.Name = "btnClearValues";
+            btnClearValues.Size = new Size(120, 32);
+            btnClearValues.TabIndex = 10;
+            btnClearValues.Text = "Clear &Values";
+            btnClearValues.UseVisualStyleBackColor = true;
+            btnClearValues.Click += this.btnClearValues_Click;
             // 
             // DemoDataTableForm
             // 
             this.AutoScaleMode = AutoScaleMode.Inherit;
             this.ClientSize = new Size(882, 553);
+            this.Controls.Add(btnClearValues);
+            this.Controls.Add(txtGuidValue);
+            this.Controls.Add(label3);
+            this.Controls.Add(label2);
+            this.Controls.Add(txtXmlValue);
+            this.Controls.Add(label1);
+            this.Controls.Add(btnSetImage);
+            this.Controls.Add(pbImage);
+            this.Controls.Add(btnSetGuid);
+            this.Controls.Add(btnSetXml);
             this.Controls.Add(btnClose);
             this.Controls.Add(btnSave);
             this.Controls.Add(dgvDemoData);
@@ -178,7 +304,9 @@ namespace EntityFrameworkNet48TestApp
             this.Text = "Edit Demo Data";
             ((System.ComponentModel.ISupportInitialize)dgvDemoData).EndInit();
             ((System.ComponentModel.ISupportInitialize)bsDemoData).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbImage).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
         }
 
         #endregion
@@ -194,5 +322,15 @@ namespace EntityFrameworkNet48TestApp
         private DataGridViewCheckBoxColumn boolValueDataGridViewCheckBoxColumn;
         private DataGridViewTextBoxColumn lastModifiedDataGridViewTextBoxColumn;
         private DataGridViewButtonColumn btncDelete;
+        private Button btnSetXml;
+        private Button btnSetGuid;
+        private PictureBox pbImage;
+        private Button btnSetImage;
+        private Label label1;
+        private TextBox txtXmlValue;
+        private Label label2;
+        private Label label3;
+        private TextBox txtGuidValue;
+        private Button btnClearValues;
     }
 }

@@ -70,19 +70,19 @@ namespace LinqToSQLTestApp.Database
 			}
 		}
 		
-		public System.Data.Linq.Table<DemoTable> DemoTables
-		{
-			get
-			{
-				return this.GetTable<DemoTable>();
-			}
-		}
-		
 		public System.Data.Linq.Table<ProductInfo> ProductInfos
 		{
 			get
 			{
 				return this.GetTable<ProductInfo>();
+			}
+		}
+		
+		public System.Data.Linq.Table<DemoTable> DemoTables
+		{
+			get
+			{
+				return this.GetTable<DemoTable>();
 			}
 		}
 		
@@ -101,27 +101,6 @@ namespace LinqToSQLTestApp.Database
 		{
 			StateCode original = ((StateCode)(StateCodes.GetOriginalEntityState(obj)));
 			this.spStateCodeDelete(original.State);
-		}
-		
-		private void InsertDemoTable(DemoTable obj)
-		{
-			System.Nullable<int> p1 = obj.ListKey;
-			this.spDemoTableAddUpdate(ref p1, obj.Label, obj.TextValue, ((System.Nullable<System.DateTime>)(obj.DateValue)), ((System.Nullable<bool>)(obj.BoolValue)));
-			obj.ListKey = p1.GetValueOrDefault();
-		}
-		
-		private void UpdateDemoTable(DemoTable obj)
-		{
-			DemoTable original = ((DemoTable)(DemoTables.GetOriginalEntityState(obj)));
-			System.Nullable<int> p1 = original.ListKey;
-			this.spDemoTableAddUpdate(ref p1, obj.Label, obj.TextValue, ((System.Nullable<System.DateTime>)(obj.DateValue)), ((System.Nullable<bool>)(obj.BoolValue)));
-			original.ListKey = p1.GetValueOrDefault();
-		}
-		
-		private void DeleteDemoTable(DemoTable obj)
-		{
-			DemoTable original = ((DemoTable)(DemoTables.GetOriginalEntityState(obj)));
-			this.spDemoTableDelete(((System.Nullable<int>)(original.ListKey)));
 		}
 		
 		private void InsertProductInfo(ProductInfo obj)
@@ -145,6 +124,27 @@ namespace LinqToSQLTestApp.Database
 			this.spProductDelete(((System.Nullable<int>)(original.ProductID)));
 		}
 		
+		private void InsertDemoTable(DemoTable obj)
+		{
+			System.Nullable<int> p1 = obj.ListKey;
+			this.spDemoTableAddUpdate(ref p1, obj.Label, obj.TextValue, ((System.Nullable<System.DateTime>)(obj.DateValue)), ((System.Nullable<bool>)(obj.BoolValue)), obj.XmlValue, ((System.Nullable<System.Guid>)(obj.GuidValue)), obj.ImageValue);
+			obj.ListKey = p1.GetValueOrDefault();
+		}
+		
+		private void UpdateDemoTable(DemoTable obj)
+		{
+			DemoTable original = ((DemoTable)(DemoTables.GetOriginalEntityState(obj)));
+			System.Nullable<int> p1 = original.ListKey;
+			this.spDemoTableAddUpdate(ref p1, obj.Label, obj.TextValue, ((System.Nullable<System.DateTime>)(obj.DateValue)), ((System.Nullable<bool>)(obj.BoolValue)), obj.XmlValue, ((System.Nullable<System.Guid>)(obj.GuidValue)), obj.ImageValue);
+			original.ListKey = p1.GetValueOrDefault();
+		}
+		
+		private void DeleteDemoTable(DemoTable obj)
+		{
+			DemoTable original = ((DemoTable)(DemoTables.GetOriginalEntityState(obj)));
+			this.spDemoTableDelete(((System.Nullable<int>)(original.ListKey)));
+		}
+		
 		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spStateCodeAddUpdate")]
 		public int spStateCodeAddUpdate([global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Char(2)")] string paramOldState, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Char(2)")] string paramState, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarChar(20)")] string paramStateDesc)
 		{
@@ -164,28 +164,6 @@ namespace LinqToSQLTestApp.Database
 		{
 			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())));
 			return ((ISingleResult<StateCode>)(result.ReturnValue));
-		}
-		
-		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableData")]
-		public ISingleResult<DemoTable> spDemoTableData()
-		{
-			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())));
-			return ((ISingleResult<DemoTable>)(result.ReturnValue));
-		}
-		
-		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableDelete")]
-		public int spDemoTableDelete([global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Int")] System.Nullable<int> paramListKey)
-		{
-			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())), paramListKey);
-			return ((int)(result.ReturnValue));
-		}
-		
-		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableAddUpdate")]
-		public int spDemoTableAddUpdate([global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Int")] ref System.Nullable<int> paramListKey, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarChar(40)")] string paramLabel, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarChar(40)")] string paramTextValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="DateTime2")] System.Nullable<System.DateTime> paramDateValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Bit")] System.Nullable<bool> paramBoolValue)
-		{
-			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())), paramListKey, paramLabel, paramTextValue, paramDateValue, paramBoolValue);
-			paramListKey = ((System.Nullable<int>)(result.GetParameterValue(0)));
-			return ((int)(result.ReturnValue));
 		}
 		
 		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spProductInfo")]
@@ -229,6 +207,28 @@ namespace LinqToSQLTestApp.Database
 		{
 			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())));
 			return ((ISingleResult<spCompaniesResult>)(result.ReturnValue));
+		}
+		
+		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableData")]
+		public ISingleResult<DemoTable> spDemoTableData()
+		{
+			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())));
+			return ((ISingleResult<DemoTable>)(result.ReturnValue));
+		}
+		
+		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableAddUpdate")]
+		public int spDemoTableAddUpdate([global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Int")] ref System.Nullable<int> paramListKey, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarChar(40)")] string paramLabel, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarChar(40)")] string paramTextValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="DateTime2")] System.Nullable<System.DateTime> paramDateValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Bit")] System.Nullable<bool> paramBoolValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Xml")] System.Xml.Linq.XElement paramXmlValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="UniqueIdentifier")] System.Nullable<System.Guid> paramGuidValue, [global::System.Data.Linq.Mapping.ParameterAttribute(DbType="VarBinary(MAX)")] System.Data.Linq.Binary paramImageValue)
+		{
+			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())), paramListKey, paramLabel, paramTextValue, paramDateValue, paramBoolValue, paramXmlValue, paramGuidValue, paramImageValue);
+			paramListKey = ((System.Nullable<int>)(result.GetParameterValue(0)));
+			return ((int)(result.ReturnValue));
+		}
+		
+		[global::System.Data.Linq.Mapping.FunctionAttribute(Name="dbo.spDemoTableDelete")]
+		public int spDemoTableDelete([global::System.Data.Linq.Mapping.ParameterAttribute(DbType="Int")] System.Nullable<int> paramListKey)
+		{
+			IExecuteResult result = this.ExecuteMethodCall(this, ((MethodInfo)(MethodInfo.GetCurrentMethod())), paramListKey);
+			return ((int)(result.ReturnValue));
 		}
 	}
 	
@@ -341,188 +341,6 @@ namespace LinqToSQLTestApp.Database
 					this._IsInUse = value;
 					this.SendPropertyChanged("IsInUse");
 					this.OnIsInUseChanged();
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.DemoTable")]
-	public partial class DemoTable : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private int _ListKey;
-		
-		private string _Label;
-		
-		private string _TextValue;
-		
-		private System.DateTime _DateValue;
-		
-		private bool _BoolValue;
-		
-		private System.Data.Linq.Binary _LastModified;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnListKeyChanging(int value);
-    partial void OnListKeyChanged();
-    partial void OnLabelChanging(string value);
-    partial void OnLabelChanged();
-    partial void OnTextValueChanging(string value);
-    partial void OnTextValueChanged();
-    partial void OnDateValueChanging(System.DateTime value);
-    partial void OnDateValueChanged();
-    partial void OnBoolValueChanging(bool value);
-    partial void OnBoolValueChanged();
-    partial void OnLastModifiedChanging(System.Data.Linq.Binary value);
-    partial void OnLastModifiedChanged();
-    #endregion
-		
-		public DemoTable()
-		{
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ListKey", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true, UpdateCheck=UpdateCheck.Never)]
-		public int ListKey
-		{
-			get
-			{
-				return this._ListKey;
-			}
-			set
-			{
-				if ((this._ListKey != value))
-				{
-					this.OnListKeyChanging(value);
-					this.SendPropertyChanging();
-					this._ListKey = value;
-					this.SendPropertyChanged("ListKey");
-					this.OnListKeyChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Label", DbType="VarChar(40) NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
-		public string Label
-		{
-			get
-			{
-				return this._Label;
-			}
-			set
-			{
-				if ((this._Label != value))
-				{
-					this.OnLabelChanging(value);
-					this.SendPropertyChanging();
-					this._Label = value;
-					this.SendPropertyChanged("Label");
-					this.OnLabelChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TextValue", DbType="VarChar(40) NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
-		public string TextValue
-		{
-			get
-			{
-				return this._TextValue;
-			}
-			set
-			{
-				if ((this._TextValue != value))
-				{
-					this.OnTextValueChanging(value);
-					this.SendPropertyChanging();
-					this._TextValue = value;
-					this.SendPropertyChanged("TextValue");
-					this.OnTextValueChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateValue", DbType="DateTime2 NOT NULL", UpdateCheck=UpdateCheck.Never)]
-		public System.DateTime DateValue
-		{
-			get
-			{
-				return this._DateValue;
-			}
-			set
-			{
-				if ((this._DateValue != value))
-				{
-					this.OnDateValueChanging(value);
-					this.SendPropertyChanging();
-					this._DateValue = value;
-					this.SendPropertyChanged("DateValue");
-					this.OnDateValueChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_BoolValue", DbType="Bit NOT NULL", UpdateCheck=UpdateCheck.Never)]
-		public bool BoolValue
-		{
-			get
-			{
-				return this._BoolValue;
-			}
-			set
-			{
-				if ((this._BoolValue != value))
-				{
-					this.OnBoolValueChanging(value);
-					this.SendPropertyChanging();
-					this._BoolValue = value;
-					this.SendPropertyChanged("BoolValue");
-					this.OnBoolValueChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LastModified", AutoSync=AutoSync.Always, DbType="rowversion NOT NULL", CanBeNull=false, IsDbGenerated=true, IsVersion=true, UpdateCheck=UpdateCheck.Never)]
-		public System.Data.Linq.Binary LastModified
-		{
-			get
-			{
-				return this._LastModified;
-			}
-			set
-			{
-				if ((this._LastModified != value))
-				{
-					this.OnLastModifiedChanging(value);
-					this.SendPropertyChanging();
-					this._LastModified = value;
-					this.SendPropertyChanged("LastModified");
-					this.OnLastModifiedChanged();
 				}
 			}
 		}
@@ -805,6 +623,260 @@ namespace LinqToSQLTestApp.Database
 					this._Discontinued = value;
 					this.SendPropertyChanged("Discontinued");
 					this.OnDiscontinuedChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LastModified", AutoSync=AutoSync.Always, DbType="rowversion NOT NULL", CanBeNull=false, IsDbGenerated=true, IsVersion=true, UpdateCheck=UpdateCheck.Never)]
+		public System.Data.Linq.Binary LastModified
+		{
+			get
+			{
+				return this._LastModified;
+			}
+			set
+			{
+				if ((this._LastModified != value))
+				{
+					this.OnLastModifiedChanging(value);
+					this.SendPropertyChanging();
+					this._LastModified = value;
+					this.SendPropertyChanged("LastModified");
+					this.OnLastModifiedChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.DemoTable")]
+	public partial class DemoTable : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _ListKey;
+		
+		private string _Label;
+		
+		private string _TextValue;
+		
+		private System.DateTime _DateValue;
+		
+		private bool _BoolValue;
+		
+		private System.Xml.Linq.XElement _XmlValue;
+		
+		private System.Nullable<System.Guid> _GuidValue;
+		
+		private System.Data.Linq.Binary _ImageValue;
+		
+		private System.Data.Linq.Binary _LastModified;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnListKeyChanging(int value);
+    partial void OnListKeyChanged();
+    partial void OnLabelChanging(string value);
+    partial void OnLabelChanged();
+    partial void OnTextValueChanging(string value);
+    partial void OnTextValueChanged();
+    partial void OnDateValueChanging(System.DateTime value);
+    partial void OnDateValueChanged();
+    partial void OnBoolValueChanging(bool value);
+    partial void OnBoolValueChanged();
+    partial void OnXmlValueChanging(System.Xml.Linq.XElement value);
+    partial void OnXmlValueChanged();
+    partial void OnGuidValueChanging(System.Nullable<System.Guid> value);
+    partial void OnGuidValueChanged();
+    partial void OnImageValueChanging(System.Data.Linq.Binary value);
+    partial void OnImageValueChanged();
+    partial void OnLastModifiedChanging(System.Data.Linq.Binary value);
+    partial void OnLastModifiedChanged();
+    #endregion
+		
+		public DemoTable()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ListKey", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true, UpdateCheck=UpdateCheck.Never)]
+		public int ListKey
+		{
+			get
+			{
+				return this._ListKey;
+			}
+			set
+			{
+				if ((this._ListKey != value))
+				{
+					this.OnListKeyChanging(value);
+					this.SendPropertyChanging();
+					this._ListKey = value;
+					this.SendPropertyChanged("ListKey");
+					this.OnListKeyChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Label", DbType="VarChar(40) NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
+		public string Label
+		{
+			get
+			{
+				return this._Label;
+			}
+			set
+			{
+				if ((this._Label != value))
+				{
+					this.OnLabelChanging(value);
+					this.SendPropertyChanging();
+					this._Label = value;
+					this.SendPropertyChanged("Label");
+					this.OnLabelChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TextValue", DbType="VarChar(40) NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
+		public string TextValue
+		{
+			get
+			{
+				return this._TextValue;
+			}
+			set
+			{
+				if ((this._TextValue != value))
+				{
+					this.OnTextValueChanging(value);
+					this.SendPropertyChanging();
+					this._TextValue = value;
+					this.SendPropertyChanged("TextValue");
+					this.OnTextValueChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateValue", DbType="DateTime2 NOT NULL", UpdateCheck=UpdateCheck.Never)]
+		public System.DateTime DateValue
+		{
+			get
+			{
+				return this._DateValue;
+			}
+			set
+			{
+				if ((this._DateValue != value))
+				{
+					this.OnDateValueChanging(value);
+					this.SendPropertyChanging();
+					this._DateValue = value;
+					this.SendPropertyChanged("DateValue");
+					this.OnDateValueChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_BoolValue", DbType="Bit NOT NULL", UpdateCheck=UpdateCheck.Never)]
+		public bool BoolValue
+		{
+			get
+			{
+				return this._BoolValue;
+			}
+			set
+			{
+				if ((this._BoolValue != value))
+				{
+					this.OnBoolValueChanging(value);
+					this.SendPropertyChanging();
+					this._BoolValue = value;
+					this.SendPropertyChanged("BoolValue");
+					this.OnBoolValueChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_XmlValue", DbType="Xml", UpdateCheck=UpdateCheck.Never)]
+		public System.Xml.Linq.XElement XmlValue
+		{
+			get
+			{
+				return this._XmlValue;
+			}
+			set
+			{
+				if ((this._XmlValue != value))
+				{
+					this.OnXmlValueChanging(value);
+					this.SendPropertyChanging();
+					this._XmlValue = value;
+					this.SendPropertyChanged("XmlValue");
+					this.OnXmlValueChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GuidValue", DbType="UniqueIdentifier", UpdateCheck=UpdateCheck.Never)]
+		public System.Nullable<System.Guid> GuidValue
+		{
+			get
+			{
+				return this._GuidValue;
+			}
+			set
+			{
+				if ((this._GuidValue != value))
+				{
+					this.OnGuidValueChanging(value);
+					this.SendPropertyChanging();
+					this._GuidValue = value;
+					this.SendPropertyChanged("GuidValue");
+					this.OnGuidValueChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ImageValue", DbType="VarBinary(MAX)", UpdateCheck=UpdateCheck.Never)]
+		public System.Data.Linq.Binary ImageValue
+		{
+			get
+			{
+				return this._ImageValue;
+			}
+			set
+			{
+				if ((this._ImageValue != value))
+				{
+					this.OnImageValueChanging(value);
+					this.SendPropertyChanging();
+					this._ImageValue = value;
+					this.SendPropertyChanged("ImageValue");
+					this.OnImageValueChanged();
 				}
 			}
 		}

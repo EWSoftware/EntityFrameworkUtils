@@ -20,35 +20,8 @@
       <Argument Parameter="paramState" Member="State" Version="Original" />
     </DeleteFunction>
   </Table>
-  <Table Name="dbo.DemoTable" Member="DemoTables">
-    <Type Name="DemoTable" Id="ID2">
-      <Column Name="ListKey" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="Label" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
-      <Column Name="TextValue" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
-      <Column Name="DateValue" Type="System.DateTime" DbType="DateTime2 NOT NULL" CanBeNull="false" />
-      <Column Name="BoolValue" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" CanBeNull="false" IsVersion="true" />
-    </Type>
-    <InsertFunction FunctionId="FunctionId3">
-      <Argument Parameter="paramListKey" Member="ListKey" />
-      <Argument Parameter="paramLabel" Member="Label" />
-      <Argument Parameter="paramTextValue" Member="TextValue" />
-      <Argument Parameter="paramDateValue" Member="DateValue" />
-      <Argument Parameter="paramBoolValue" Member="BoolValue" />
-    </InsertFunction>
-    <UpdateFunction FunctionId="FunctionId3">
-      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
-      <Argument Parameter="paramLabel" Member="Label" />
-      <Argument Parameter="paramTextValue" Member="TextValue" />
-      <Argument Parameter="paramDateValue" Member="DateValue" />
-      <Argument Parameter="paramBoolValue" Member="BoolValue" />
-    </UpdateFunction>
-    <DeleteFunction FunctionId="FunctionId4">
-      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
-    </DeleteFunction>
-  </Table>
   <Table Name="dbo.ProductInfo" Member="ProductInfos">
-    <Type Name="ProductInfo" Id="ID3">
+    <Type Name="ProductInfo" Id="ID2">
       <Column Name="ProductID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="ProductName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
       <Column Name="CategoryName" Type="System.String" DbType="VarChar(15)" CanBeNull="true" />
@@ -61,7 +34,7 @@
       <Column Name="Discontinued" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" CanBeNull="false" IsVersion="true" />
     </Type>
-    <InsertFunction FunctionId="FunctionId5">
+    <InsertFunction FunctionId="FunctionId3">
       <Argument Parameter="paramProductID" Member="ProductID" />
       <Argument Parameter="paramProductName" Member="ProductName" />
       <Argument Parameter="paramCategoryName" Member="CategoryName" />
@@ -73,7 +46,7 @@
       <Argument Parameter="paramReorderLevel" Member="ReorderLevel" />
       <Argument Parameter="paramDiscontinued" Member="Discontinued" />
     </InsertFunction>
-    <UpdateFunction FunctionId="FunctionId5">
+    <UpdateFunction FunctionId="FunctionId3">
       <Argument Parameter="paramProductID" Member="ProductID" Version="Original" />
       <Argument Parameter="paramProductName" Member="ProductName" />
       <Argument Parameter="paramCategoryName" Member="CategoryName" />
@@ -85,8 +58,44 @@
       <Argument Parameter="paramReorderLevel" Member="ReorderLevel" />
       <Argument Parameter="paramDiscontinued" Member="Discontinued" />
     </UpdateFunction>
-    <DeleteFunction FunctionId="FunctionId6">
+    <DeleteFunction FunctionId="FunctionId4">
       <Argument Parameter="paramProductID" Member="ProductID" Version="Original" />
+    </DeleteFunction>
+  </Table>
+  <Table Name="dbo.DemoTable" Member="DemoTables">
+    <Type Name="DemoTable" Id="ID3">
+      <Column Name="ListKey" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Label" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
+      <Column Name="TextValue" Type="System.String" DbType="VarChar(40) NOT NULL" CanBeNull="false" />
+      <Column Name="DateValue" Type="System.DateTime" DbType="DateTime2 NOT NULL" CanBeNull="false" />
+      <Column Name="BoolValue" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="XmlValue" Type="System.Xml.Linq.XElement" DbType="Xml" CanBeNull="true" />
+      <Column Name="GuidValue" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="ImageValue" Type="System.Data.Linq.Binary" DbType="VarBinary(MAX)" CanBeNull="true" />
+      <Column Name="LastModified" Type="System.Data.Linq.Binary" DbType="rowversion NOT NULL" CanBeNull="false" IsVersion="true" />
+    </Type>
+    <InsertFunction FunctionId="FunctionId5">
+      <Argument Parameter="paramListKey" Member="ListKey" />
+      <Argument Parameter="paramLabel" Member="Label" />
+      <Argument Parameter="paramTextValue" Member="TextValue" />
+      <Argument Parameter="paramDateValue" Member="DateValue" />
+      <Argument Parameter="paramBoolValue" Member="BoolValue" />
+      <Argument Parameter="paramXmlValue" Member="XmlValue" />
+      <Argument Parameter="paramGuidValue" Member="GuidValue" />
+      <Argument Parameter="paramImageValue" Member="ImageValue" />
+    </InsertFunction>
+    <UpdateFunction FunctionId="FunctionId5">
+      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
+      <Argument Parameter="paramLabel" Member="Label" />
+      <Argument Parameter="paramTextValue" Member="TextValue" />
+      <Argument Parameter="paramDateValue" Member="DateValue" />
+      <Argument Parameter="paramBoolValue" Member="BoolValue" />
+      <Argument Parameter="paramXmlValue" Member="XmlValue" />
+      <Argument Parameter="paramGuidValue" Member="GuidValue" />
+      <Argument Parameter="paramImageValue" Member="ImageValue" />
+    </UpdateFunction>
+    <DeleteFunction FunctionId="FunctionId6">
+      <Argument Parameter="paramListKey" Member="ListKey" Version="Original" />
     </DeleteFunction>
   </Table>
   <Function Id="FunctionId1" Name="dbo.spStateCodeAddUpdate" Method="spStateCodeAddUpdate">
@@ -102,24 +111,9 @@
   <Function Name="dbo.spStateCodes" Method="spStateCodes">
     <ElementType IdRef="ID1" />
   </Function>
-  <Function Name="dbo.spDemoTableData" Method="spDemoTableData">
-    <ElementType IdRef="ID2" />
-  </Function>
-  <Function Id="FunctionId4" Name="dbo.spDemoTableDelete" Method="spDemoTableDelete">
-    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" />
-    <Return Type="System.Int32" />
-  </Function>
-  <Function Id="FunctionId3" Name="dbo.spDemoTableAddUpdate" Method="spDemoTableAddUpdate">
-    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" Direction="InOut" />
-    <Parameter Name="paramLabel" Type="System.String" DbType="VarChar(40)" />
-    <Parameter Name="paramTextValue" Type="System.String" DbType="VarChar(40)" />
-    <Parameter Name="paramDateValue" Type="System.DateTime" DbType="DateTime2" />
-    <Parameter Name="paramBoolValue" Type="System.Boolean" DbType="Bit" />
-    <Return Type="System.Int32" />
-  </Function>
   <Function Name="dbo.spProductInfo" Method="spProductInfo">
     <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" />
-    <ElementType IdRef="ID3" />
+    <ElementType IdRef="ID2" />
   </Function>
   <Function Name="dbo.spProductSearch" Method="spProductSearch">
     <Parameter Name="paramProductName" Type="System.String" DbType="VarChar(40)" />
@@ -134,11 +128,11 @@
       <Column Name="Discontinued" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
     </ElementType>
   </Function>
-  <Function Id="FunctionId6" Name="dbo.spProductDelete" Method="spProductDelete">
+  <Function Id="FunctionId4" Name="dbo.spProductDelete" Method="spProductDelete">
     <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" />
     <Return Type="System.Int32" />
   </Function>
-  <Function Id="FunctionId5" Name="dbo.spProductAddUpdate" Method="spProductAddUpdate">
+  <Function Id="FunctionId3" Name="dbo.spProductAddUpdate" Method="spProductAddUpdate">
     <Parameter Name="paramProductID" Type="System.Int32" DbType="Int" Direction="InOut" />
     <Parameter Name="paramProductName" Type="System.String" DbType="VarChar(40)" />
     <Parameter Name="paramCategoryName" Type="System.String" DbType="VarChar(15)" />
@@ -160,5 +154,23 @@
     <ElementType Name="spCompaniesResult">
       <Column Name="CompanyName" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
     </ElementType>
+  </Function>
+  <Function Name="dbo.spDemoTableData" Method="spDemoTableData">
+    <ElementType IdRef="ID3" />
+  </Function>
+  <Function Id="FunctionId5" Name="dbo.spDemoTableAddUpdate" Method="spDemoTableAddUpdate">
+    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" Direction="InOut" />
+    <Parameter Name="paramLabel" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramTextValue" Type="System.String" DbType="VarChar(40)" />
+    <Parameter Name="paramDateValue" Type="System.DateTime" DbType="DateTime2" />
+    <Parameter Name="paramBoolValue" Type="System.Boolean" DbType="Bit" />
+    <Parameter Name="paramXmlValue" Type="System.Xml.Linq.XElement" DbType="Xml" />
+    <Parameter Name="paramGuidValue" Type="System.Guid" DbType="UniqueIdentifier" />
+    <Parameter Name="paramImageValue" Type="System.Data.Linq.Binary" DbType="VarBinary(MAX)" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Id="FunctionId6" Name="dbo.spDemoTableDelete" Method="spDemoTableDelete">
+    <Parameter Name="paramListKey" Type="System.Int32" DbType="Int" />
+    <Return Type="System.Int32" />
   </Function>
 </Database>

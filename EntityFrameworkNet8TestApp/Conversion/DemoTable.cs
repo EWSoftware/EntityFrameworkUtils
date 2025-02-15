@@ -5,6 +5,7 @@
 
 // TODO: Add or remove using statements as needed
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using EWSoftware.EntityFramework;
@@ -41,6 +42,24 @@ namespace EntityFrameworkNet8TestApp.Database
         }
 
         public bool BoolValue
+        {
+            get;
+            set => this.SetWithNotify(value, ref field);
+        }
+
+        public System.Xml.Linq.XElement? XmlValue
+        {
+            get;
+            set => this.SetWithNotify(value, ref field);
+        }
+
+        public Guid? GuidValue
+        {
+            get;
+            set => this.SetWithNotify(value, ref field);
+        }
+
+        public byte[]? ImageValue
         {
             get;
             set => this.SetWithNotify(value, ref field);

@@ -5,12 +5,13 @@
 
 // TODO: Add or remove using statements as needed
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using EWSoftware.EntityFramework;
 using EWSoftware.EntityFramework.DataAnnotations;
 
-namespace EntityFrameworkNet8TestApp.Database
+namespace EntityFrameworkNet48TestApp.Database
 {
     [NeverTrack]
     public sealed class spProductSearchResult

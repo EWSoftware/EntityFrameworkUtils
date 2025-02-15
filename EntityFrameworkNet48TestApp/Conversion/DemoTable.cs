@@ -5,12 +5,13 @@
 
 // TODO: Add or remove using statements as needed
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using EWSoftware.EntityFramework;
 using EWSoftware.EntityFramework.DataAnnotations;
 
-namespace EntityFrameworkNet8TestApp.Database
+namespace EntityFrameworkNet48TestApp.Database
 {
     [InsertEntityStoredProcedure("spDemoTableAddUpdate"), UpdateEntityStoredProcedure("spDemoTableAddUpdate"), DeleteEntityStoredProcedure("spDemoTableDelete")]
     public sealed class DemoTable : ChangeTrackingEntity
@@ -54,6 +55,30 @@ namespace EntityFrameworkNet8TestApp.Database
         {
             get => _boolValue;
             set => this.SetWithNotify(value, ref _boolValue);
+        }
+
+        private System.Xml.Linq.XElement _xmlValue;
+
+        public System.Xml.Linq.XElement XmlValue
+        {
+            get => _xmlValue;
+            set => this.SetWithNotify(value, ref _xmlValue);
+        }
+
+        private Guid? _guidValue;
+
+        public Guid? GuidValue
+        {
+            get => _guidValue;
+            set => this.SetWithNotify(value, ref _guidValue);
+        }
+
+        private byte[] _imageValue;
+
+        public byte[] ImageValue
+        {
+            get => _imageValue;
+            set => this.SetWithNotify(value, ref _imageValue);
         }
 
         private byte[] _lastModified;

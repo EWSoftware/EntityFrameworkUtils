@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using EWSoftware.EntityFramework;
 using EWSoftware.EntityFramework.DataAnnotations;
@@ -52,6 +53,35 @@ namespace EntityFrameworkNet48TestApp.Database
         {
             get => _boolValue;
             set => this.SetWithNotify(value, ref _boolValue);
+        }
+
+        private System.Xml.Linq.XElement _xmlValue;
+
+        /// <summary>
+        /// Entity Framework does not support XML properties in entities so we need to ignore it.  The stored
+        /// procedure extension methods do support them so we don't need an additional property to handle it.
+        /// </summary>
+        [NotMapped]
+        public System.Xml.Linq.XElement XmlValue
+        {
+            get => _xmlValue;
+            set => this.SetWithNotify(value, ref _xmlValue);
+        }
+
+        private Guid? _guidValue;
+
+        public Guid? GuidValue
+        {
+            get => _guidValue;
+            set => this.SetWithNotify(value, ref _guidValue);
+        }
+
+        private byte[] _imageValue;
+
+        public byte[] ImageValue
+        {
+            get => _imageValue;
+            set => this.SetWithNotify(value, ref _imageValue);
         }
 
         private byte[] _lastModified;

@@ -166,6 +166,7 @@
     <None Include="Content\StoredProcedureMethods.aml" />
     <None Include="Content\VersionHistory\v2024.12.29.0.aml" />
     <None Include="Content\VersionHistory\v2025.1.16.0.aml" />
+    <None Include="Content\VersionHistory\v2025.2.15.0.aml" />
     <None Include="Content\VersionHistory\VersionHistory.aml" />
     <None Include="Content\Welcome.aml" />
   </ItemGroup>

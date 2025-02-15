@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFrameworkNet8TestApp.Database
 {
-    // TODO: Check ..\..\..\..\LinqToSQLTestApp\Database\DemoDatabase.cs for additional code for the data context
+    // TODO: Check Database\DemoDatabase.cs for additional code for the data context
     [ParameterNamePrefix("param")]
     public sealed class DemoDatabaseDataContext : DbContext
     {
@@ -25,9 +25,9 @@ namespace EntityFrameworkNet8TestApp.Database
         // These entities utilize change tracking so a property is required here for them
         public DbSet<StateCode> StateCode { get; set; } = null!;
 
-        public DbSet<DemoTable> DemoTable { get; set; } = null!;
-
         public DbSet<ProductInfo> ProductInfo { get; set; } = null!;
+
+        public DbSet<DemoTable> DemoTable { get; set; } = null!;
 
         #endregion
 
@@ -70,57 +70,31 @@ namespace EntityFrameworkNet8TestApp.Database
         }
 
         // TODO: This method is used to delete entities.  You may be able to 
-        // remove it and add a DeleteEntityStoredProcedure attribute to the 
+        // remove it and add a DeleteEntityStoredProcedureAttribute to the 
         // entity type and use the DeleteEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
+        // SubmitChanges<TEntity>() extension method instead.
         public int spStateCodeDelete(string? state)
         {
             return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, state).ReturnValue;
         }
 
         // TODO: This method is used to delete entities.  You may be able to 
-        // remove it and add a DeleteEntityStoredProcedure attribute to the 
+        // remove it and add a DeleteEntityStoredProcedureAttribute to the 
         // entity type and use the DeleteEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
-        public int spDemoTableDelete(int? listKey)
-        {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey).ReturnValue;
-        }
-
-        // TODO: This method is used to insert entities.  You may be able to 
-        // remove it and add an InsertEntityStoredProcedure attribute to the 
-        // entity type and use the InsertEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
-        // TODO: This method is used to update entities.  You may be able to 
-        // remove it and add an UpdateEntityStoredProcedure attribute to the 
-        // entity type and use the UpdateEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
-        public int spDemoTableAddUpdate(ref int? listKey, string? label, string? textValue, DateTime? dateValue, bool? boolValue)
-        {
-            var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey, label, textValue, dateValue, boolValue);
-
-            listKey = (int?)result.OutputValues[nameof(listKey)];
-
-            return result.ReturnValue;
-        }
-
-        // TODO: This method is used to delete entities.  You may be able to 
-        // remove it and add a DeleteEntityStoredProcedure attribute to the 
-        // entity type and use the DeleteEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
+        // SubmitChanges<TEntity>() extension method instead.
         public int spProductDelete(int? productID)
         {
             return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, productID).ReturnValue;
         }
 
         // TODO: This method is used to insert entities.  You may be able to 
-        // remove it and add an InsertEntityStoredProcedure attribute to the 
+        // remove it and add an InsertEntityStoredProcedureAttribute to the 
         // entity type and use the InsertEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
+        // SubmitChanges<TEntity>() extension method instead.
         // TODO: This method is used to update entities.  You may be able to 
-        // remove it and add an UpdateEntityStoredProcedure attribute to the 
+        // remove it and add an UpdateEntityStoredProcedureAttribute to the 
         // entity type and use the UpdateEntity<TEntity>() or 
-        // SubmitChanges<TEntity>() method instead.
+        // SubmitChanges<TEntity>() extension method instead.
         public int spProductAddUpdate(ref int? productID, string? productName, string? categoryName, string? companyName, string? quantityPerUnit, decimal? unitPrice, short? unitsInStock, short? unitsOnOrder, short? reorderLevel, bool? discontinued)
         {
             var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, productID, productName, categoryName, companyName, quantityPerUnit, unitPrice, unitsInStock, unitsOnOrder, reorderLevel, discontinued);
@@ -130,50 +104,79 @@ namespace EntityFrameworkNet8TestApp.Database
             return result.ReturnValue;
         }
 
+        // TODO: This method is used to insert entities.  You may be able to 
+        // remove it and add an InsertEntityStoredProcedureAttribute to the 
+        // entity type and use the InsertEntity<TEntity>() or 
+        // SubmitChanges<TEntity>() extension method instead.
+        // TODO: This method is used to update entities.  You may be able to 
+        // remove it and add an UpdateEntityStoredProcedureAttribute to the 
+        // entity type and use the UpdateEntity<TEntity>() or 
+        // SubmitChanges<TEntity>() extension method instead.
+        public int spDemoTableAddUpdate(ref int? listKey, string? label, string? textValue, DateTime? dateValue, bool? boolValue, System.Xml.Linq.XElement? xmlValue, Guid? guidValue, byte[]? imageValue)
+        {
+            var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey, label, textValue, dateValue, boolValue, xmlValue, guidValue, imageValue);
+
+            listKey = (int?)result.OutputValues[nameof(listKey)];
+
+            return result.ReturnValue;
+        }
+
+        // TODO: This method is used to delete entities.  You may be able to 
+        // remove it and add a DeleteEntityStoredProcedureAttribute to the 
+        // entity type and use the DeleteEntity<TEntity>() or 
+        // SubmitChanges<TEntity>() extension method instead.
+        public int spDemoTableDelete(int? listKey)
+        {
+            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey).ReturnValue;
+        }
+
+        // TODO: All of this method's parameters match properties on the result set type.
+        // You may be able to remove it and add a LoadByKeyStoredProcedureAttribute to
+        // the result set type and use the LoadByKey<TEntity>() extension method instead 
+        // if the corresponding properties are marked as the primary key.
         public IEnumerable<spProductSearchResult> spProductSearch(string? productName, string? categoryName, string? companyName)
         {
             return this.ExecuteMethodQuery<spProductSearchResult>((MethodInfo)MethodInfo.GetCurrentMethod()!, productName, categoryName, companyName);
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
-        // and add a LoadAllStoredProcedure attribute to the result set 
-        // type and use the LoadAll<TEntity>() extension method instead.
+        // and add a LoadAllStoredProcedureAttribute to the result set type
+        // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<spCategoriesResult> spCategories()
         {
             return this.ExecuteMethodQuery<spCategoriesResult>((MethodInfo)MethodInfo.GetCurrentMethod()!);
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
-        // and add a LoadAllStoredProcedure attribute to the result set 
-        // type and use the LoadAll<TEntity>() extension method instead.
+        // and add a LoadAllStoredProcedureAttribute to the result set type
+        // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<spCompaniesResult> spCompanies()
         {
             return this.ExecuteMethodQuery<spCompaniesResult>((MethodInfo)MethodInfo.GetCurrentMethod()!);
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
-        // and add a LoadAllStoredProcedure attribute to the result set 
-        // type and use the LoadAll<TEntity>() extension method instead.
+        // and add a LoadAllStoredProcedureAttribute to the result set type
+        // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<StateCode> spStateCodes()
         {
             return this.ExecuteMethodQuery<StateCode>((MethodInfo)MethodInfo.GetCurrentMethod()!);
         }
 
-        // TODO: This method has no parameters.  You may be able to remove it
-        // and add a LoadAllStoredProcedure attribute to the result set 
-        // type and use the LoadAll<TEntity>() extension method instead.
-        public IEnumerable<DemoTable> spDemoTableData()
-        {
-            return this.ExecuteMethodQuery<DemoTable>((MethodInfo)MethodInfo.GetCurrentMethod()!);
-        }
-
-        // TODO: This method's parameters match the key on the result set type.
-        // You may be able to remove it and add a LoadByKey
-        // attribute to the result set type and use the LoadByKey<TEntity>()
-        // extension method instead.
+        // TODO: This method's parameters match the key on the result set type.  You
+        // may be able to remove it and add a LoadByKeyStoredProcedureAttribute to the 
+        // result set type and use the LoadByKey<TEntity>() extension method instead.
         public IEnumerable<ProductInfo> spProductInfo(int? productID)
         {
             return this.ExecuteMethodQuery<ProductInfo>((MethodInfo)MethodInfo.GetCurrentMethod()!, productID);
+        }
+
+        // TODO: This method has no parameters.  You may be able to remove it
+        // and add a LoadAllStoredProcedureAttribute to the result set type
+        // and use the LoadAll<TEntity>() extension method instead.
+        public IEnumerable<DemoTable> spDemoTableData()
+        {
+            return this.ExecuteMethodQuery<DemoTable>((MethodInfo)MethodInfo.GetCurrentMethod()!);
         }
 
         #endregion
