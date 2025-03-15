@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 02/15/2025
+// Updated : 03/14/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -272,10 +272,13 @@ namespace EWSoftware.EntityFramework
                     break;
 
                 case TypeCode.DateTime:
-                    if(((DateTime)parameter.Value).Year < 1753)
-                        parameter.SqlDbType = SqlDbType.DateTime2;
-                    else
-                        parameter.SqlDbType = SqlDbType.DateTime;
+                    if(parameter.Value != null && parameter.Value != DBNull.Value)
+                    {
+                        if(((DateTime)parameter.Value).Year < 1753)
+                            parameter.SqlDbType = SqlDbType.DateTime2;
+                        else
+                            parameter.SqlDbType = SqlDbType.DateTime;
+                    }
                     break;
 
                 case TypeCode.Decimal:
