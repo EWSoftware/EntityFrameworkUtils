@@ -9,8 +9,8 @@
 		<Title>EWSoftware Entity Framework Utilities</Title>
 		<Copyright>Copyright (c) 2024-2025, Eric Woodruff, All Rights Reserved</Copyright>
 		<NeutralLanguage>en</NeutralLanguage>
-		<Version>2025.3.14.0</Version>
-		<FileVersion>25.3.14.0</FileVersion>
+		<Version>2025.3.17.0</Version>
+		<FileVersion>25.3.17.0</FileVersion>
 		<Description>This library adds various extension methods and SQL Server stored procedure support similar to LINQ to SQL to the Microsoft Entity Framework.  See the project website for the code, demos, and online help content.</Description>
 		<Authors>Eric Woodruff</Authors>
 		<PackageIconUrl>https://raw.githubusercontent.com/EWSoftware/EntityFrameworkUtils/master/Source/EntityFrameworkUtils.png</PackageIconUrl>

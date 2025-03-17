@@ -94,17 +94,18 @@ namespace EWSoftware.EntityFramework
                     var columnName = mp.GetCustomAttribute<ColumnAttribute>();
 
                     object? value = parameters[idx];
+                    var paramType = mp.ParameterType.IsByRef ? mp.ParameterType.GetElementType()! : mp.ParameterType;
 
                     if(value != null)
                     {
                         var valueType = value.GetType();
 
                         // For nullable types, compare the underlying type to the value type
-                        var underlyingType = Nullable.GetUnderlyingType(mp.ParameterType) ?? mp.ParameterType;
+                        var underlyingType = Nullable.GetUnderlyingType(paramType) ?? paramType;
 
                         if(!underlyingType.Equals(valueType))
                         {
-                            throw new InvalidOperationException($"Data type of method parameter {mp.Name} ({mp.ParameterType.Name}) " +
+                            throw new InvalidOperationException($"Data type of method parameter {mp.Name} ({paramType.Name}) " +
                                 $"does not match the data type of the parameter value \"{value}\" ({valueType.Name})");
                         }
                     }
@@ -113,7 +114,7 @@ namespace EWSoftware.EntityFramework
                     // using any default value assigned to the parameter.
                     var p = new SqlParameter($"@{spName?.ParameterNamePrefix ?? contextParamPrefix?.Prefix}{columnName?.Name ?? mp.Name}",
                         value ?? DBNull.Value);
-                    p.SetParameterType(mp.ParameterType);
+                    p.SetParameterType(paramType);
 
                     // If the method parameter is by reference, make the SQL parameter input/output
                     if(mp.ParameterType.IsByRef)
@@ -122,7 +123,7 @@ namespace EWSoftware.EntityFramework
 
                         // For nulls, the size must be set for output parameters or it will fail.  We just pick
                         // an arbitrary large size.
-                        if(p.Value == DBNull.Value)
+                        if(p.Value == DBNull.Value && !paramType.IsValueType)
                             p.Size = Int32.MaxValue;
 
                         inOutParams.Add((mp.Name!, idx));
