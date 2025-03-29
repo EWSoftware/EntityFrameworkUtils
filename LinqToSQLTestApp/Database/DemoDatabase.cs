@@ -14,7 +14,7 @@ namespace LinqToSQLTestApp.Database
             if(String.IsNullOrWhiteSpace(DatabaseLocation))
                 throw new InvalidOperationException("The database location has not been set");
 
-            this.Connection.ConnectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog={DatabaseLocation};Integrated Security=True";
+            this.Connection.ConnectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFileName={DatabaseLocation}";
         }
     }
 }

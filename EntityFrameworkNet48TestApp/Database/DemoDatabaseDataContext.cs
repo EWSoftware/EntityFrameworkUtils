@@ -47,7 +47,7 @@ namespace EntityFrameworkNet48TestApp.Database
             if(String.IsNullOrWhiteSpace(DatabaseLocation))
                 throw new InvalidOperationException("The database location has not been set");
 
-            optionsBuilder.UseSqlServer($@"Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog={DatabaseLocation};Integrated Security=True");
+            optionsBuilder.UseSqlServer($@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFileName={DatabaseLocation}");
 
             base.OnConfiguring(optionsBuilder);
         }
