@@ -1030,7 +1030,7 @@ namespace EWSoftware.EntityFramework
         /// <code language="cs">
         /// using var dataContext = new MyDbContext();
         /// 
-        /// var watchList = await dataContext.LoadAll&lt;WatchList&gt;().ToListAsync();
+        /// var watchList = await dataContext.LoadAllAsync&lt;WatchList&gt;().ToListAsync();
         /// </code>
         /// </example>
         public static async IAsyncEnumerable<TEntity> LoadAllAsync<TEntity>(this DbContext dataContext,
@@ -2324,7 +2324,7 @@ namespace EWSoftware.EntityFramework
         /// // extension method instead.
         /// var cts = new CancellationTokenSource();
         /// 
-        /// await foreach(var t in dc.spTransactionList(1, "MSFT", fromDate,
+        /// await foreach(var t in dc.spTransactionListAsync(1, "MSFT", fromDate,
         ///     toDate, null).WithCancellation(cts.Token))
         /// {
         ///     ....

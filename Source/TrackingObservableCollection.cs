@@ -52,7 +52,7 @@ namespace EWSoftware.EntityFramework
 
         /// <summary>
         /// This is overridden to remove each individual entry rather than clearing them all out at once to
-        /// allow the data context to know about the removal of all of the tracked items.
+        /// allow the data context to know about the removal of all the tracked items.
         /// </summary>
         protected override void ClearItems()
         {
