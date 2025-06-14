@@ -42,22 +42,21 @@ namespace EntityFrameworkNet48TestApp
         /// <param name="e">The event arguments</param>
         private void ProductSearchForm_Activated(object sender, EventArgs e)
         {
-            using(var dc = new DemoDatabaseDataContext().NoTracking().Open())
+            using var dc = new DemoDatabaseDataContext().NoTracking().Open();
+            
+            if(cboCategoryName.Items.Count == 0)
             {
-                if(cboCategoryName.Items.Count == 0)
-                {
-                    cboCategoryName.Items.Add(String.Empty);
-                    cboCategoryName.Items.AddRange(dc.LoadAll<spCategoriesResult>().Select(c => c.CategoryName).ToArray());
+                cboCategoryName.Items.Add(String.Empty);
+                cboCategoryName.Items.AddRange(dc.LoadAll<spCategoriesResult>().Select(c => c.CategoryName).ToArray());
 
-                    cboCompanyName.Items.Add(String.Empty);
-                    cboCompanyName.Items.AddRange(dc.LoadAll<spCompaniesResult>().Select(c => c.CompanyName).ToArray());
+                cboCompanyName.Items.Add(String.Empty);
+                cboCompanyName.Items.AddRange(dc.LoadAll<spCompaniesResult>().Select(c => c.CompanyName).ToArray());
 
-                    cboCategoryName.SelectedIndex = cboCompanyName.SelectedIndex = 0;
-                }
-
-                bsProducts.DataSource = dc.spProductSearch(txtProductName.Text.NullIfWhiteSpace(),
-                    cboCategoryName.SelectedItem.ToStringOrNull(), cboCompanyName.SelectedItem.ToStringOrNull()).ToList();
+                cboCategoryName.SelectedIndex = cboCompanyName.SelectedIndex = 0;
             }
+
+            bsProducts.DataSource = dc.spProductSearch(txtProductName.Text.NullIfWhiteSpace(),
+                cboCategoryName.SelectedItem.ToStringOrNull(), cboCompanyName.SelectedItem.ToStringOrNull()).ToList();
         }
 
         /// <summary>
@@ -77,11 +76,10 @@ namespace EntityFrameworkNet48TestApp
         /// <param name="e">The event arguments</param>
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            using(var dlg = new ProductAddEditForm(null))
-            {
-                if(dlg.ShowDialog() == DialogResult.OK)
-                    this.ProductSearchForm_Activated(sender, e);
-            }
+            using var dlg = new ProductAddEditForm(null);
+            
+            if(dlg.ShowDialog() == DialogResult.OK)
+                this.ProductSearchForm_Activated(sender, e);
         }
 
         /// <summary>
@@ -95,11 +93,10 @@ namespace EntityFrameworkNet48TestApp
             {
                 var product = (spProductSearchResult)bsProducts.Current;
 
-                using(var dlg = new ProductAddEditForm(product.ProductID))
-                {
-                    if(dlg.ShowDialog() == DialogResult.OK)
-                        this.ProductSearchForm_Activated(sender, e);
-                }
+                using var dlg = new ProductAddEditForm(product.ProductID);
+                
+                if(dlg.ShowDialog() == DialogResult.OK)
+                    this.ProductSearchForm_Activated(sender, e);
             }
         }
         #endregion

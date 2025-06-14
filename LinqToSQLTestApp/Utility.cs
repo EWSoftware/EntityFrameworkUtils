@@ -167,7 +167,7 @@ namespace LinqToSQLTestApp
         /// </code>
         /// </example>
         /// <seealso cref="ToNullable{T}(Object)" />
-        public static Nullable<T> ToNullable<T>(this T value) where T : struct
+        public static T? ToNullable<T>(this T value) where T : struct
         {
             T defValue = default;
 
@@ -197,7 +197,7 @@ namespace LinqToSQLTestApp
         /// </code>
         /// </example>
         /// <seealso cref="ToNullable{T}(T)" />
-        public static Nullable<T> ToNullable<T>(this object value) where T : struct
+        public static T? ToNullable<T>(this object value) where T : struct
         {
             if(value == null || value == DBNull.Value)
                 return null;

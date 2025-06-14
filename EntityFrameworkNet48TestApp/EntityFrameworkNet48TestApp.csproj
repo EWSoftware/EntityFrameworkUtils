@@ -4,6 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+		<!-- Use version 8.0 for async enumerable support.  This should still work with VS 2019. -->
+		<LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Source\EWSoftware.EntityFramework.csproj" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<ProjectReference Include="..\Source\EWSoftware.EntityFramework.csproj" />
   </ItemGroup>
 
 </Project>

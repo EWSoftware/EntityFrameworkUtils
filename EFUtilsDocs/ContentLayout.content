@@ -24,11 +24,12 @@
   </Topic>
   <Topic id="f818ea4c-f1c6-4bc0-b7f1-373bde857dd1" visible="True" title="Result Set and Parameter Extension Methods" />
   <Topic id="9bfd97fc-06aa-49a4-a663-df34f92ab78a" visible="True" title="DBML to Entity Framework Converter" />
-  <Topic id="73c00da4-99f1-47c5-aaf3-0bc31fcc8066" visible="True" isExpanded="true" title="Version History">
+  <Topic id="73c00da4-99f1-47c5-aaf3-0bc31fcc8066" visible="True" isSelected="true" title="Version History">
     <HelpKeywords>
       <HelpKeyword index="K" term="" />
     </HelpKeywords>
-    <Topic id="02fea71d-fb20-4b3b-a63f-3b2e52d3d9dd" visible="True" isSelected="true" title="Version 2025.3.17.0" />
+    <Topic id="e0b384f4-919c-4b0c-a6ad-f6e8f05dfdb9" visible="True" title="Version 2025.6.14.0" />
+    <Topic id="02fea71d-fb20-4b3b-a63f-3b2e52d3d9dd" visible="True" title="Version 2025.3.17.0" />
     <Topic id="f1d879e5-2605-4c44-83c7-764256e1a5e9" visible="True" title="Version 2025.2.15.0" />
     <Topic id="e02149fe-cf98-4031-9422-303b858c6343" visible="True" title="Version 2025.1.16.0" />
     <Topic id="2e7c7414-87db-4cb8-affd-65548f23f365" visible="True" title="Version 2024.12.29.0">

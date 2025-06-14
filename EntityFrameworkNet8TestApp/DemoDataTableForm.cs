@@ -2,7 +2,7 @@
 // System  : Entity Framework Test Application
 // File    : DemoDataTableForm.cs
 // Author  : Eric Woodruff
-// Updated : 02/15/2025
+// Updated : 06/14/2025
 //
 // This file contains the form used to edit the data in the demo table
 //
@@ -70,6 +70,27 @@ namespace EntityFrameworkNet8TestApp
             // The demo table keys are immutable so we can use the extension method that uses the insert, update,
             // and delete stored procedure attributes to submit all changes.
             dc.SubmitChanges<DemoTable>();
+        }
+
+        /// <summary>
+        /// Save any pending changes asynchronously
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event arguments</param>
+        private async void btnSaveAsync_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                btnSave.Enabled = btnSaveAsync.Enabled = false;
+                Cursor.Current = Cursors.WaitCursor;
+
+                await dc.SubmitChangesAsync<DemoTable>();
+            }
+            finally
+            {
+                Cursor.Current = Cursors.Default;
+                btnSave.Enabled = btnSaveAsync.Enabled = true;
+            }
         }
 
         /// <summary>

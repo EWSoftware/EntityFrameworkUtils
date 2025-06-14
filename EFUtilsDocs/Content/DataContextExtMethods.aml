@@ -28,11 +28,11 @@ using var dataContext = new MyDbContext().NoTracking().Open();
 		</section>
 
 		<section address="Open">
-			<title>Open</title>
+			<title>Open / OpenAsync</title>
 			<content>
-				<para>This extension method is used to open a connection on a data context when constructed or later.  It
-can be chained together with the <codeInline>NoTracking</codeInline> extension method described above to turn off
-change tracking at the same time.</para>
+				<para>This extension method and its asynchronous counterpart are used to open a connection on a data
+context when constructed or later.  It can be chained together with the <codeInline>NoTracking</codeInline>
+extension method described above to turn off change tracking at the same time.</para>
 
 				<code language="csharp">
 using var dataContext = new MyDbContext().Open();
@@ -42,6 +42,11 @@ using var dataContext = new MyDbContext().Open();
 using var dataContext = new MyDbContext().NoTracking().Open();
 
 ... Execute commands ...
+
+using var dataContext = await new MyDbContext().NoTracking().OpenAsync(cts.Token);
+
+... Execute commands ...
+
 				</code>
 			</content>
 		</section>

@@ -30,7 +30,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             dgvStateCodes = new DataGridView();
             stateDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             stateDescDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
@@ -39,6 +39,7 @@
             bsStateCodes = new BindingSource(components);
             btnSave = new Button();
             btnClose = new Button();
+            btnSaveAsync = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvStateCodes).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bsStateCodes).BeginInit();
             this.SuspendLayout();
@@ -80,13 +81,13 @@
             // 
             // btncDelete
             // 
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.Padding = new Padding(2);
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Control;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.ControlText;
-            btncDelete.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = SystemColors.Control;
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.Padding = new Padding(2);
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Control;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.ControlText;
+            btncDelete.DefaultCellStyle = dataGridViewCellStyle2;
             btncDelete.HeaderText = "";
             btncDelete.MinimumWidth = 6;
             btncDelete.Name = "btncDelete";
@@ -127,15 +128,27 @@
             btnClose.Location = new Point(682, 509);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(88, 32);
-            btnClose.TabIndex = 2;
+            btnClose.TabIndex = 3;
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = true;
             btnClose.Click += this.btnClose_Click;
+            // 
+            // btnSaveAsync
+            // 
+            btnSaveAsync.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSaveAsync.Location = new Point(106, 509);
+            btnSaveAsync.Name = "btnSaveAsync";
+            btnSaveAsync.Size = new Size(120, 32);
+            btnSaveAsync.TabIndex = 2;
+            btnSaveAsync.Text = "Save &Async";
+            btnSaveAsync.UseVisualStyleBackColor = true;
+            btnSaveAsync.Click += this.btnSaveAsync_Click;
             // 
             // StateCodesForm
             // 
             this.AutoScaleMode = AutoScaleMode.Inherit;
             this.ClientSize = new Size(782, 553);
+            this.Controls.Add(btnSaveAsync);
             this.Controls.Add(btnClose);
             this.Controls.Add(btnSave);
             this.Controls.Add(dgvStateCodes);
@@ -157,5 +170,6 @@
         private DataGridViewTextBoxColumn stateDescDataGridViewTextBoxColumn;
         private DataGridViewButtonColumn btncDelete;
         private DataGridViewTextBoxColumn lastModifiedDataGridViewTextBoxColumn;
+        private Button btnSaveAsync;
     }
 }

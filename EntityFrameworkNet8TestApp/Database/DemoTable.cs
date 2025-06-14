@@ -10,8 +10,9 @@ using EWSoftware.EntityFramework.DataAnnotations;
 
 namespace EntityFrameworkNet8TestApp.Database
 {
-    [LoadAllStoredProcedure("spDemoTableData"), InsertEntityStoredProcedure("spDemoTableAddUpdate"),
-      UpdateEntityStoredProcedure("spDemoTableAddUpdate"), DeleteEntityStoredProcedure("spDemoTableDelete")]
+    [LoadAllStoredProcedure("spDemoTableData"), LoadByKeyStoredProcedure("spDemoTableInfo"),
+      InsertEntityStoredProcedure("spDemoTableAddUpdate"), UpdateEntityStoredProcedure("spDemoTableAddUpdate"),
+      DeleteEntityStoredProcedure("spDemoTableDelete")]
     public sealed class DemoTable : ChangeTrackingEntity
     {
         [Key]

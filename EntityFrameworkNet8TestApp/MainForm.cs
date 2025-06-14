@@ -2,7 +2,7 @@
 // System  : Entity Framework Test Application
 // File    : MainForm.cs
 // Author  : Eric Woodruff
-// Updated : 12/17/2024
+// Updated : 06/08/2025
 //
 // This file contains the main form for the test application
 //
@@ -46,6 +46,12 @@ namespace EntityFrameworkNet8TestApp
         private void btnProductSearch_Click(object sender, EventArgs e)
         {
             using var dlg = new ProductSearchForm();
+            dlg.ShowDialog();
+        }
+
+        private void btnTestSyncMethods_Click(object sender, EventArgs e)
+        {
+            using var dlg = new TestAsyncMethodsForm();
             dlg.ShowDialog();
         }
     }

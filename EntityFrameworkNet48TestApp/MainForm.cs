@@ -2,7 +2,7 @@
 // System  : Entity Framework Test Application
 // File    : MainForm.cs
 // Author  : Eric Woodruff
-// Updated : 12/17/2024
+// Updated : 06/14/2025
 //
 // This file contains the main form for the test application
 //
@@ -37,26 +37,26 @@ namespace EntityFrameworkNet48TestApp
 
         private void btnEditStateCodes_Click(object sender, EventArgs e)
         {
-            using(var dlg = new StateCodesForm())
-            {
-                dlg.ShowDialog();
-            }
+            using var dlg = new StateCodesForm();
+            dlg.ShowDialog();
         }
 
         private void btnEditDemoDataTable_Click(object sender, EventArgs e)
         {
-            using(var dlg = new DemoDataTableForm())
-            {
-                dlg.ShowDialog();
-            }
+            using var dlg = new DemoDataTableForm();
+            dlg.ShowDialog();
         }
 
         private void btnProductSearch_Click(object sender, EventArgs e)
         {
-            using(var dlg = new ProductSearchForm())
-            {
-                dlg.ShowDialog();
-            }
+            using var dlg = new ProductSearchForm();
+            dlg.ShowDialog();
+        }
+
+        private void btnTestSyncMethods_Click(object sender, EventArgs e)
+        {
+            using var dlg = new TestAsyncMethodsForm();
+            dlg.ShowDialog();
         }
     }
 }

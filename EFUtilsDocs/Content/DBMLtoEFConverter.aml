@@ -196,6 +196,9 @@ method if stored procedures were defined to handle the inserts, updates, and del
 call.  The extension methods return an enumerable list and use a data reader.  As such, if two are enumerated at
 the same time, you will need to use <codeInline>ToList()</codeInline> on the outermost enumerable to prevent any
 subsequent simultaneous enumerations from failing due to multiple open data readers.</para>
+
+				<para>Asynchronous versions of all the data context stored procedure related extension methods are
+available.  As such, you may be able to update your code to take advantage of them if so desired.</para>
 			</content>
 		</section>
 		

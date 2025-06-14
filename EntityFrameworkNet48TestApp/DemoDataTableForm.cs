@@ -2,7 +2,7 @@
 // System  : Entity Framework Test Application
 // File    : DemoDataTableForm.cs
 // Author  : Eric Woodruff
-// Updated : 02/15/2025
+// Updated : 06/14/2025
 //
 // This file contains the form used to edit the data in the demo table
 //
@@ -77,6 +77,27 @@ namespace EntityFrameworkNet48TestApp
         }
 
         /// <summary>
+        /// Save any pending changes asynchronously
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event arguments</param>
+        private async void btnSaveAsync_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                btnSave.Enabled = btnSaveAsync.Enabled = false;
+                Cursor.Current = Cursors.WaitCursor;
+
+                await dc.SubmitChangesAsync<DemoTable>();
+            }
+            finally
+            {
+                Cursor.Current = Cursors.Default;
+                btnSave.Enabled = btnSaveAsync.Enabled = true;
+            }
+        }
+
+        /// <summary>
         /// Handled delete grid view button clicks
         /// </summary>
         /// <param name="sender">The sender of the event</param>
@@ -106,10 +127,8 @@ namespace EntityFrameworkNet48TestApp
 
                 if((row.ImageValue?.Length ?? 0) != 0)
                 {
-                    using(var ms = new MemoryStream(row.ImageValue))
-                    {
-                        pbImage.Image = Image.FromStream(ms);
-                    }
+                    using var ms = new MemoryStream(row.ImageValue);
+                    pbImage.Image = Image.FromStream(ms);
                 }
             }
         }
@@ -168,26 +187,22 @@ namespace EntityFrameworkNet48TestApp
                 var random = new Random();
                 var bmp = new Bitmap(100, 100);
 
-                using(Graphics g = Graphics.FromImage(bmp))
+                using Graphics g = Graphics.FromImage(bmp);
+
+                for(int y = 0; y < 100; y += 20)
                 {
-                    for(int y = 0; y < 100; y += 20)
+                    for(int x = 0; x < 100; x += 20)
                     {
-                        for(int x = 0; x < 100; x += 20)
-                        {
-                            Color randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
-                            using(Brush brush = new SolidBrush(randomColor))
-                            {
-                                g.FillRectangle(brush, x, y, 20, 20);
-                            }
-                        }
+                        Color randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                        using Brush brush = new SolidBrush(randomColor);
+
+                        g.FillRectangle(brush, x, y, 20, 20);
                     }
                 }
 
-                using(var ms = new MemoryStream())
-                {
-                    bmp.Save(ms, ImageFormat.Png);
-                    row.ImageValue = ms.ToArray();
-                }
+                using var ms = new MemoryStream();
+                bmp.Save(ms, ImageFormat.Png);
+                row.ImageValue = ms.ToArray();
 
                 this.bsDemoData_CurrentChanged(sender, e);
             }

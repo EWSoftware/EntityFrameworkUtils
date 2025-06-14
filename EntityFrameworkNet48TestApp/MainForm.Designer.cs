@@ -34,6 +34,7 @@ namespace EntityFrameworkNet48TestApp
             btnEditStateCodes = new Button();
             btnEditDemoDataTable = new Button();
             btnProductSearch = new Button();
+            btnTestSyncMethods = new Button();
             this.SuspendLayout();
             // 
             // btnEditStateCodes
@@ -66,10 +67,21 @@ namespace EntityFrameworkNet48TestApp
             btnProductSearch.UseVisualStyleBackColor = true;
             btnProductSearch.Click += this.btnProductSearch_Click;
             // 
+            // btnTestSyncMethods
+            // 
+            btnTestSyncMethods.Location = new Point(80, 126);
+            btnTestSyncMethods.Name = "btnTestSyncMethods";
+            btnTestSyncMethods.Size = new Size(262, 32);
+            btnTestSyncMethods.TabIndex = 3;
+            btnTestSyncMethods.Text = "&Test Async Methods";
+            btnTestSyncMethods.UseVisualStyleBackColor = true;
+            btnTestSyncMethods.Click += this.btnTestSyncMethods_Click;
+            // 
             // MainForm
             // 
             this.AutoScaleMode = AutoScaleMode.Inherit;
-            this.ClientSize = new Size(422, 138);
+            this.ClientSize = new Size(422, 172);
+            this.Controls.Add(btnTestSyncMethods);
             this.Controls.Add(btnProductSearch);
             this.Controls.Add(btnEditDemoDataTable);
             this.Controls.Add(btnEditStateCodes);
@@ -85,6 +97,7 @@ namespace EntityFrameworkNet48TestApp
         private System.Windows.Forms.Button btnEditStateCodes;
         private System.Windows.Forms.Button btnEditDemoDataTable;
         private Button btnProductSearch;
+        private Button btnTestSyncMethods;
     }
 }
 

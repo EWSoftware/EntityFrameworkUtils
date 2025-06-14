@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <topic id="3070da37-6ca8-48e0-b350-618489d67bc5" revisionNumber="1">
   <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <introduction>
+		<!-- Ignore Spelling: bool foreach cts -->
+		
+		<introduction>
       <para>When executing a stored procedure that does not return a result set or does not conform to the key
 field or parameter expectations of the other extension methods, you can add stored procedure methods to the
 Entity Framework data context that mimic the behavior of the stored procedure methods used by LINQ to SQL data
@@ -13,8 +15,8 @@ For query stored procedure methods, the return value is an enumerable list of th
 the query's result set.</para>
 
 			<alert class="note">
-				<para>In the two extension methods below, if the data context connection is not in an open state, it
-is opened temporarily while performing the action and closed again afterwards.</para>
+				<para>In the extension methods below, if the data context connection is not in an open state, it is
+opened temporarily while performing the action and closed again afterwards.</para>
 
 				<para>If change tracking is enabled on the data context, any entities loaded by
 <codeInline>ExecuteMethodQuery</codeInline> will be added to the change tracker.  Likewise, changes to the
@@ -163,6 +165,140 @@ public IEnumerable&lt;spTransactionListResult&gt; spTransactionList(int accountK
 			</content>
 		</section>
 
+		<section address="AsyncSupport">
+			<title>Differences for the Asynchronous Extension Methods</title>
+			<content>
+				<para>The asynchronous versions of the query and non-query extension methods require a few modifications
+in order to use them correctly.</para>
+
+				<list class="bullet">
+					<listItem>
+						<para>If you follow convention and suffix the method name with "Async", you will likely need to use
+the <codeInline>MethodStoredProcedureAttribute</codeInline> on it to specify the stored procedure name without
+the suffix.</para>
+					</listItem>
+					<listItem>
+						<para>The method information must be obtained using the stack trace to find the actual called method.
+This is required because the code within the stored procedure method is rewritten by the compiler and is
+placed inside a separate compiler generated method.</para>
+					</listItem>
+
+					<listItem>
+						<para>The method parameters must be passed to the extension method as an array.  This is necessary
+as the last parameter for the extension method is the optional cancellation token.</para>
+					</listItem>
+
+					<listItem>
+						<para>A cancellation token cannot be passed explicitly to the stored procedure method as it will be
+considered one of the stored procedure parameters and the method parameter count will not match the number of
+parameters passed to the extension method.  The
+<codeEntityReference qualifyHint="false" autoUpgrade="true">M:System.Threading.Tasks.TaskAsyncEnumerableExtensions.WithCancellation``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)</codeEntityReference>
+extension method can be used instead to achieve the same result.</para>
+					</listItem>
+				</list>
+
+				<para>Some examples are shown below.</para>
+
+				<code language="cs">
+// Execute a stored procedure and return its return value
+[MethodStoredProcedure("spStockAdd")]
+public async int spStockAddAsync(string symbol, string assetDescription,
+  decimal currentBid, decimal currentAsk, decimal priceChangePercent)
+{
+    // When called asynchronously, the parameters must be passed as an array
+    // and we must get the method info from the stack trace as we're inside the
+    // compiler generated state machine at this point.  We must also specify the
+    // stored procedure name in the method attribute if the method name does not
+    // match the stored procedure name.
+    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        frame => frame.GetMethod()).FirstOrDefault(
+            item => item!.DeclaringType == GetType()) ??
+               throw new InvalidOperationException("Unable to get async method info"));
+
+    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol,
+        assetDescription, currentBid, currentAsk, priceChangePercent]);
+
+    return result.ReturnValue;
+}
+
+// Execute a stored procedure and return the number of rows affected
+[MethodStoredProcedure("spStockDelete")]
+public async int spStockDeleteAsync(string symbol)
+{
+    // When called asynchronously, the parameters must be passed as an array
+    // and we must get the method info from the stack trace as we're inside the
+    // compiler generated state machine at this point.  We must also specify the
+    // stored procedure name in the method attribute if the method name does not
+    // match the stored procedure name.
+    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+            throw new InvalidOperationException("Unable to get async method info"));
+
+    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol]);
+
+    return result.RowsAffected;
+}
+
+// Execute a stored procedure and return the output parameters via the ref parameters on
+// the method.  We can also return the stored procedure's return value or rows affected.
+[MethodStoredProcedure("spCheckForEmployeeSchedule")]
+public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
+  ref bool bidGroupScheduled, ref bool entityScheduled)
+{
+    // When called asynchronously, the parameters must be passed as an array
+    // and we must get the method info from the stack trace as we're inside the
+    // compiler generated state machine at this point.  We must also specify the
+    // stored procedure name in the method attribute if the method name does not
+    // match the stored procedure name.
+    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+            throw new InvalidOperationException("Unable to get async method info"));
+
+    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [bidGroup, entityKey,
+        bidGroupScheduled, entityScheduled]);
+
+    bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
+    entityScheduled = (bool)result.OutputValues[nameof(entityScheduled);
+
+    return result.ReturnValue;
+}
+
+// Execute a search stored procedure and return its result set
+[MethodStoredProcedure("spTransactionList")]
+public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
+  string? symbol, DateTime fromDate, DateTime toDate, string? txType)
+{
+    // When called asynchronously, the parameters must be passed as an array
+    // and we must get the method info from the stack trace as we're inside the
+    // compiler generated state machine at this point.  We must also specify the
+    // stored procedure name in the method attribute if the method name does not
+    // match the stored procedure name.
+    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+            throw new InvalidOperationException("Unable to get async method info"));
+
+    // Note that we can't pass a cancellation token as it would look like one of
+    // the method parameters.  Use the WithCancellation() extension method on the
+    // call to this method instead.
+    return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(methodInfo,
+        [accountKey, symbol, fromDate, toDate, txType]);
+}
+
+// We can't pass the cancellation token to the query method as it will look like
+// a parameter to the stored procedure.  We need to use the WithCancellation()
+// extension method instead.
+var cts = new CancellationTokenSource();
+
+await foreach(var t in dc.spTransactionList(1, "MSFT", fromDate,
+    toDate, null).WithCancellation(cts.Token))
+{
+    ....
+}
+
+				</code>
+			</content>
+		</section>
+		
 		<relatedTopics>
 			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
 		</relatedTopics>

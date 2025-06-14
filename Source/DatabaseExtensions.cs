@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 03/14/2025
+// Updated : 06/14/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -10,6 +10,8 @@
 // ==============================================================================================================
 // 11/22/2024  EFW  Created the code
 //===============================================================================================================
+
+// Ignore Spelling: se cts
 
 using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
@@ -53,6 +55,375 @@ namespace EWSoftware.EntityFramework
                 return storedProcedureName;
 
             return String.Join(schemaName.SchemaName, ".", storedProcedureName);
+        }
+
+        /// <summary>
+        /// Create a command instance to load entities of the given type using a stored procedure defined on the
+        /// entity type.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <param name="dataContext">The data context to use</param>
+        /// <param name="parameters">For loading all entities, this is null.  For loading by key, it is one or
+        /// more parameter values that will be passed to the stored procedure.  The parameter order must match
+        /// the declared key order on the entity but does not have to match the parameter order in the stored
+        /// procedure.</param>
+        /// <returns>A tuple containing the connection instance, the command instance, a dictionary containing
+        /// the entity type properties, the never track flag, and the entity type.  The caller is responsible
+        /// for disposing of the command instance.</returns>
+        private static (DbConnection connection, DbCommand command, Dictionary<string, PropertyInfo> properties,
+          bool neverTrack, Type entityType)
+          CreateLoadCommand<TEntity>(DbContext dataContext, object?[]? parameters)
+        {
+            Type entityType = typeof(TEntity);
+            string storedProcName;
+            string? parameterNamePrefix = null;
+
+            if((parameters?.Length ?? 0) == 0)
+            {
+                var spNameAttr = entityType.GetCustomAttributes<LoadAllStoredProcedureAttribute>().FirstOrDefault() ??
+                    throw new NotSupportedException("The specified entity type is not decorated with the " +
+                        nameof(LoadAllStoredProcedureAttribute));
+
+                storedProcName = spNameAttr.StoredProcedureName;
+            }
+            else
+            {
+                var spNameAttr = entityType.GetCustomAttributes<LoadByKeyStoredProcedureAttribute>().FirstOrDefault() ??
+                    throw new NotSupportedException("The specified entity type is not decorated with the " +
+                        nameof(LoadByKeyStoredProcedureAttribute));
+
+                storedProcName = spNameAttr.StoredProcedureName;
+
+                var namePrefixAttr = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
+
+                parameterNamePrefix = spNameAttr.ParameterNamePrefix ?? namePrefixAttr?.Prefix;
+            }
+
+            bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
+            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
+            var connection = dataContext.Database.GetDbConnection();
+            var command = connection.CreateCommand();
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName);
+
+            if((parameters?.Length ?? 0) != 0)
+            {
+                // Get the primary key for the entity type
+                var keys = DetermineKeyProperties(dataContext, entityType, properties.Values).ToList();
+
+                if(keys.Count != parameters!.Length)
+                {
+                    throw new InvalidOperationException($"The number of keys specified on the entity ({keys.Count}) " +
+                        $"does not match the number of parameters passed ({parameters.Length})");
+                }
+
+                int paramIdx = 0;
+
+                // Add a parameter for each key field
+                foreach(string key in keys)
+                {
+                    if(!properties.TryGetValue(key, out var p))
+                        throw new InvalidOperationException($"The key property {key} was not found on the entity");
+
+                    // If the property has a column attribute, use the name from it instead
+                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
+
+                    object? value = parameters[paramIdx++];
+
+                    if(value != null)
+                    {
+                        var valueType = value.GetType();
+
+                        // For nullable types, compare the underlying type to the value type
+                        var underlyingType = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+
+                        if(!underlyingType.Equals(valueType))
+                        {
+                            throw new InvalidOperationException($"Data type of property {p.Name} ({p.PropertyType.Name}) " +
+                                $"does not match the data type of the parameter value \"{value}\" ({valueType.Name})");
+                        }
+                    }
+
+                    // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
+                    // using any default value assigned to the parameter.
+                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? key}",
+                        value ?? DBNull.Value);
+                    param.SetParameterType(p.PropertyType);
+                    command.Parameters.Add(param);
+                }
+            }
+
+            return (connection, command, properties, neverTrack, entityType);
+        }
+
+        /// <summary>
+        /// Create a command instance to insert or update an entity of the given type using a stored procedure
+        /// defined on the entity type.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <param name="dataContext">The data context to use</param>
+        /// <param name="entity">The entity to insert or update</param>
+        /// <param name="forInsert">True for insert, false for update</param>
+        /// <returns>A tuple containing the connection instance, the command instance, a list containing
+        /// the input/output parameters, and the never track flag.  The caller is responsible for disposing of
+        /// the command instance.</returns>
+        private static (DbConnection connection, DbCommand command,
+          List<(PropertyInfo Property, SqlParameter Parameter)> inOutParams, bool neverTrack)
+          CreateInsertUpdateCommand<TEntity>(DbContext dataContext, TEntity entity, bool forInsert)
+        {
+            Type entityType = typeof(TEntity);
+            string storedProcName;
+            string? parameterNamePrefix;
+            StoredProcedureAttribute spNameAttr;
+            List<string>? keys = null;
+
+            var properties = entityType.GetProperties();
+
+            if(forInsert)
+            {
+                spNameAttr = entityType.GetCustomAttributes<InsertEntityStoredProcedureAttribute>().FirstOrDefault() ??
+                    throw new NotSupportedException("The specified entity type is not decorated with the " +
+                        nameof(InsertEntityStoredProcedureAttribute));
+
+                keys = [.. DetermineKeyProperties(dataContext, entityType, properties)];
+            }
+            else
+            {
+                spNameAttr = entityType.GetCustomAttributes<UpdateEntityStoredProcedureAttribute>().FirstOrDefault() ??
+                    throw new NotSupportedException("The specified entity type is not decorated with the " +
+                        nameof(UpdateEntityStoredProcedureAttribute));
+            }
+
+            storedProcName = spNameAttr.StoredProcedureName;
+
+            var namePrefixAttr = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
+
+            parameterNamePrefix = spNameAttr.ParameterNamePrefix ?? namePrefixAttr?.Prefix;
+
+            bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
+            var connection = dataContext.Database.GetDbConnection();
+            var command = connection.CreateCommand();
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName);
+
+            var inOutParams = new List<(PropertyInfo Property, SqlParameter Parameter)>();
+
+            // Add a parameter for each public property unless it is ignored for inserts/updates
+            foreach(var p in properties)
+            {
+                var ignored = p.GetCustomAttribute<IgnoreAttribute>();
+
+                if((forInsert && !(ignored?.ForInsert ?? false)) || (!forInsert && !(ignored?.ForUpdate ?? false)))
+                {
+                    // If the property has a column attribute, use the name from it instead
+                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
+                    var timestamp = p.GetCustomAttribute<TimestampAttribute>();
+
+                    // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
+                    // using any default value assigned to the parameter.
+                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? p.Name}",
+                        p.GetValue(entity) ?? DBNull.Value);
+                    param.SetParameterType(p.PropertyType);
+
+                    // If it's a time stamp or, for inserts only, a single key column that looks like an identity
+                    // column, make it an input/output parameter.  Primary keys with multiple columns or
+                    // non-integer keys are not assumed to be output parameters.
+                    if(timestamp != null || (forInsert && param.SqlDbType == SqlDbType.Int && keys!.Count == 1 &&
+                      keys[0] == p.Name))
+                    {
+                        param.Direction = ParameterDirection.InputOutput;
+                        inOutParams.Add((p, param));
+                    }
+
+                    command.Parameters.Add(param);
+                }
+            }
+
+            return (connection, command, inOutParams, neverTrack);
+        }
+
+        /// <summary>
+        /// Create a command instance to delete an entity of the given type using a stored procedure defined on
+        /// the entity type.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type</typeparam>
+        /// <param name="dataContext">The data context to use</param>
+        /// <param name="entity">The entity to insert or update</param>
+        /// <returns>A tuple containing the connection instance, the command instance, and the never track flag.
+        /// The caller is responsible for disposing of the command instance.</returns>
+        private static (DbConnection connection, DbCommand command, bool neverTrack)
+          CreateDeleteCommand<TEntity>(DbContext dataContext, TEntity entity)
+        {
+            Type entityType = typeof(TEntity);
+            string? parameterNamePrefix;
+
+            var spNameAttr = entityType.GetCustomAttributes<DeleteEntityStoredProcedureAttribute>().FirstOrDefault() ??
+                throw new NotSupportedException("The specified entity type is not decorated with the " +
+                    nameof(DeleteEntityStoredProcedureAttribute));
+
+            var namePrefixAttr = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
+
+            parameterNamePrefix = spNameAttr.ParameterNamePrefix ?? namePrefixAttr?.Prefix;
+
+            bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
+            var connection = dataContext.Database.GetDbConnection();
+
+            using var command = connection.CreateCommand();
+
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = CreateStoredProcedureName(dataContext, spNameAttr.StoredProcedureName);
+
+            // Get the primary key for the entity type and add a parameter for each key field
+            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
+
+            foreach(string key in DetermineKeyProperties(dataContext, entityType, properties.Values))
+            {
+                if(!properties.TryGetValue(key, out var p))
+                    throw new InvalidOperationException($"The key property {key} was not found on the entity");
+
+                // If the property has a column attribute, use the name from it instead
+                var columnName = p.GetCustomAttribute<ColumnAttribute>();
+
+                // If the property value is null, use DBNull.Value to send a NULL to the database rather than
+                // using any default value assigned to the parameter.
+                var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? key}",
+                    p.GetValue(entity) ?? DBNull.Value);
+                param.SetParameterType(p.PropertyType);
+                command.Parameters.Add(param);
+            }
+
+            return (connection, command, neverTrack);
+        }
+
+        /// <summary>
+        /// Executes an insert or update for the specified entity in the given data context
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity to be inserted or updated.</typeparam>
+        /// <param name="dataContext">The data context to use</param>
+        /// <param name="entity">The entity to insert or update</param>
+        /// <param name="forInsert">True for insert, false for update</param>
+        /// <returns>The number of rows affected assuming the stored procedure is not using <c>SET NOCOUNT ON</c></returns>
+        private static int InsertUpdateEntityInternal<TEntity>(DbContext dataContext, TEntity entity, bool forInsert)
+        {
+            // Any changes made here should also be made to InsertUpdateEntityInternalAsync if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(entity);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(entity == null)
+                throw new ArgumentNullException(nameof(entity));
+#endif
+            var (connection, command, inOutParams, neverTrack) = CreateInsertUpdateCommand(dataContext, entity, forInsert);
+            bool closeConnection = false;
+            int rowsAffected;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    connection.Open();
+                    closeConnection = true;
+                }
+
+                rowsAffected = command.ExecuteNonQuery();
+
+                // Update output parameters with their values
+                foreach(var inOut in inOutParams)
+                    inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
+            }
+            finally
+            {
+                command?.Dispose();
+
+                if(closeConnection)
+                    connection.Close();
+            }
+
+            if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+            {
+                var changeEntry = dataContext.Entry(entity);
+
+                // We must set the original values to the new values first before marking it unchanged
+                // or it reverts the values to the original unmodified values.
+                changeEntry.OriginalValues.SetValues(changeEntry.Entity);
+                changeEntry.State = EntityState.Unchanged;
+            }
+
+            return rowsAffected;
+        }
+
+        /// <summary>
+        /// Executes an insert or update asynchronously for the specified entity in the given data context
+        /// </summary>
+        /// <typeparam name="TEntity">The type of the entity to be inserted or updated.</typeparam>
+        /// <param name="dataContext">The data context to use</param>
+        /// <param name="entity">The entity to insert or update</param>
+        /// <param name="forInsert">True for insert, false for update</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>The number of rows affected assuming the stored procedure is not using <c>SET NOCOUNT ON</c></returns>
+        private static async Task<int> InsertUpdateEntityInternalAsync<TEntity>(DbContext dataContext,
+          TEntity entity, bool forInsert, CancellationToken cancellationToken)
+        {
+            // Any changes made here should also be made to InsertUpdateEntityInternal if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(entity);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(entity == null)
+                throw new ArgumentNullException(nameof(entity));
+#endif
+            var (connection, command, inOutParams, neverTrack) = CreateInsertUpdateCommand(dataContext, entity, forInsert);
+            bool closeConnection = false;
+            int rowsAffected;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+
+                // Update output parameters with their values
+                foreach(var inOut in inOutParams)
+                    inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
+            }
+            finally
+            {
+                command?.Dispose();
+
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
+            }
+
+            if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+            {
+                var changeEntry = dataContext.Entry(entity);
+
+                // We must set the original values to the new values first before marking it unchanged
+                // or it reverts the values to the original unmodified values.
+                changeEntry.OriginalValues.SetValues(changeEntry.Entity);
+                changeEntry.State = EntityState.Unchanged;
+            }
+
+            return rowsAffected;
         }
 
         /// <summary>
@@ -398,6 +769,41 @@ namespace EWSoftware.EntityFramework
         }
 
         /// <summary>
+        /// This extension method is used to open a connection on a data context asynchronously when constructed.
+        /// </summary>
+        /// <typeparam name="T">The data context type</typeparam>
+        /// <param name="dataContext">The data context on which to open the connection.</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>The passed data context object</returns>
+        /// <remarks>This method can be used in conjunction with the <see cref="NoTracking" /> extension method
+        /// as shown in the example below.</remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = await new MyDbContext().OpenAsync();
+        /// 
+        /// ... Execute commands ...
+        ///
+        /// using var dataContext = await new MyDbContext().NoTracking().OpenAsync();
+        /// 
+        /// ... Execute commands ...
+        /// 
+        /// </code>
+        /// </example>
+        public static async Task<T> OpenAsync<T>(this T dataContext,
+          CancellationToken cancellationToken = default) where T : DbContext
+        {
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+#endif
+            await dataContext.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+
+            return dataContext;
+        }
+
+        /// <summary>
         /// This extension method is used to see if a data context has any unsaved changes.
         /// </summary>
         /// <param name="dataContext">The data context to check</param>
@@ -553,25 +959,15 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static IEnumerable<TEntity> LoadAll<TEntity>(this DbContext dataContext) where TEntity : class, new()
         {
+            // Any changes made here should also be made to LoadAllAsync if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
 #else
             if(dataContext == null)
                 throw new ArgumentNullException(nameof(dataContext));
 #endif
-            Type entityType = typeof(TEntity);
-
-            var spName = entityType.GetCustomAttributes<LoadAllStoredProcedureAttribute>().FirstOrDefault() ??
-                throw new NotSupportedException("The specified entity type is not decorated with the " +
-                    nameof(LoadAllStoredProcedureAttribute));
-
-            var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
-            var connection = dataContext.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
-
+            var (connection, command, properties, neverTrack, entityType) = CreateLoadCommand<TEntity>(
+                dataContext, null);
             bool closeConnection = false;
 
             try
@@ -584,7 +980,6 @@ namespace EWSoftware.EntityFramework
                 }
 
                 using var reader = command.ExecuteReader();
-                var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
 
                 while(reader.Read())
                 {
@@ -601,19 +996,100 @@ namespace EWSoftware.EntityFramework
                             p.SetValueFromDatabase(entity, value);
                     }
 
-                    if(neverTrack == null &&
-                      dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
-                    {
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
                         dataContext.Attach(entity);
-                    }
 
                     yield return entity;
                 }
             }
             finally
             {
+                command?.Dispose();
+
                 if(closeConnection)
                     connection.Close();
+            }
+        }
+
+        /// <summary>
+        /// Load all entities of the given type asynchronously using a stored procedure defined on the entity type
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type to load</typeparam>
+        /// <param name="dataContext">The data context to use when loading the entities</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities</returns>
+        /// <remarks>
+        /// <para>The stored procedure name is determined by looking for the
+        /// <see cref="LoadAllStoredProcedureAttribute"/> on the entity type.  The stored procedure should not
+        /// have any parameters or only parameters with acceptable default values in order to return all rows.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while loading the entities.
+        /// If change tracking is enabled on the data context, changes to the entities will be tracked.  If not
+        /// or the entity is marked with the <see cref="NeverTrackAttribute"/>, they will not be tracked.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = new MyDbContext();
+        /// 
+        /// var watchList = await dataContext.LoadAll&lt;WatchList&gt;().ToListAsync();
+        /// </code>
+        /// </example>
+        public static async IAsyncEnumerable<TEntity> LoadAllAsync<TEntity>(this DbContext dataContext,
+          [EnumeratorCancellation]CancellationToken cancellationToken = default) where TEntity : class, new()
+        {
+            // Any changes made here should also be made to LoadAll if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+#endif
+            var (connection, command, properties, neverTrack, entityType) = CreateLoadCommand<TEntity>(
+                dataContext, null);
+            bool closeConnection = false;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var entity = (TEntity)Activator.CreateInstance(entityType)!;
+
+                    for(int column = 0; column < reader.FieldCount; column++)
+                    {
+                        object? value = reader.GetValue(column);
+
+                        // Set the entity values based on what is returned by the stored procedure rather than
+                        // what's in the entity.  This allows us to use different stored procedures with a common
+                        // entity type even if the stored procedures don't return the same set of columns.
+                        if(value != null && properties.TryGetValue(reader.GetName(column), out var p))
+                            p.SetValueFromDatabase(entity, value);
+                    }
+
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+                        dataContext.Attach(entity);
+
+                    yield return entity;
+                }
+            }
+            finally
+            {
+                command?.Dispose();
+
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
             }
         }
 
@@ -624,9 +1100,10 @@ namespace EWSoftware.EntityFramework
         /// <typeparam name="TEntity">The entity type to load</typeparam>
         /// <param name="dataContext">The data context to use when loading the entities</param>
         /// <param name="parameters">One or more parameter values that will be passed to the stored procedure.
-        /// The parameter order typically matches the declared key order on the entity or the parameter order of
-        /// the stored procedure but does not have to.</param>
-        /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities matching the key values</returns>
+        /// The parameter order must match the declared key order on the entity but does not have to match the
+        /// parameter order in the stored procedure.</param>
+        /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities matching the key values.
+        /// Typically, there will only be one entity but there could be others if a non-primary key is used.</returns>
         /// <remarks>
         /// <para>The stored procedure name is determined by looking for the
         /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  The stored procedure
@@ -645,6 +1122,7 @@ namespace EWSoftware.EntityFramework
         public static IEnumerable<TEntity> LoadByKey<TEntity>(this DbContext dataContext,
           params object?[] parameters) where TEntity : class, new()
         {
+            // Any changes made here should also be made to LoadByKeyAsync if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
             ArgumentNullException.ThrowIfNull(parameters);
@@ -655,65 +1133,8 @@ namespace EWSoftware.EntityFramework
             if(parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
 #endif
-            Type entityType = typeof(TEntity);
-
-            var spName = entityType.GetCustomAttributes<LoadByKeyStoredProcedureAttribute>().FirstOrDefault() ??
-                throw new NotSupportedException("The specified entity type is not decorated with the " +
-                    nameof(LoadByKeyStoredProcedureAttribute));
-
-            var namePrefix = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
-            var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
-            var connection = dataContext.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
-
-            // Get the primary key for the entity type
-            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
-            var keys = DetermineKeyProperties(dataContext, entityType, properties.Values).ToList();
-
-            if(keys.Count != parameters.Length)
-            {
-                throw new InvalidOperationException($"The number of keys specified on the entity ({keys.Count}) " +
-                    $"does not match the number of parameters passed ({parameters.Length})");
-            }
-
-            int paramIdx = 0;
-
-            // Add a parameter for each key field
-            foreach(string key in keys)
-            {
-                if(!properties.TryGetValue(key, out var p))
-                    throw new InvalidOperationException($"The key property {key} was not found on the entity");
-
-                // If the property has a column attribute, use the name from it instead
-                var columnName = p.GetCustomAttribute<ColumnAttribute>();
-
-                object? value = parameters[paramIdx++];
-
-                if(value != null)
-                {
-                    var valueType = value.GetType();
-
-                    // For nullable types, compare the underlying type to the value type
-                    var underlyingType = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
-
-                    if(!underlyingType.Equals(valueType))
-                    {
-                        throw new InvalidOperationException($"Data type of property {p.Name} ({p.PropertyType.Name}) " +
-                            $"does not match the data type of the parameter value \"{value}\" ({valueType.Name})");
-                    }
-                }
-
-                // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
-                // using any default value assigned to the parameter.
-                var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? key}",
-                    value ?? DBNull.Value);
-                param.SetParameterType(p.PropertyType);
-                command.Parameters.Add(param);
-            }
-
+            var (connection, command, properties, neverTrack, entityType) = CreateLoadCommand<TEntity>(
+                dataContext, parameters);
             bool closeConnection = false;
 
             try
@@ -742,19 +1163,110 @@ namespace EWSoftware.EntityFramework
                             p.SetValueFromDatabase(entity, value);
                     }
 
-                    if(neverTrack == null &&
-                      dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
-                    {
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
                         dataContext.Attach(entity);
-                    }
 
                     yield return entity;
                 }
             }
             finally
             {
+                command?.Dispose();
+
                 if(closeConnection)
                     connection.Close();
+            }
+        }
+
+        /// <summary>
+        /// Load all entities of the given type asynchronously using a stored procedure defined on the entity
+        /// type using the given key value(s).
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type to load</typeparam>
+        /// <param name="dataContext">The data context to use when loading the entities</param>
+        /// <param name="parameters">One or more parameter values that will be passed to the stored procedure.
+        /// The parameter order must match the declared key order on the entity but does not have to match the
+        /// parameter order in the stored procedure.</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities matching the key values.
+        /// Typically, there will only be one entity but there could be others if a non-primary key is used.</returns>
+        /// <remarks>
+        /// <para>The stored procedure name is determined by looking for the
+        /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  The stored procedure
+        /// must have a parameter for each of the passed key values in <paramref name="parameters"/>.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while loading the
+        /// entities.  If change tracking is enabled on the data context, changes to the entities will be
+        /// tracked.  If not, they will not be tracked.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = new MyDbContext();
+        /// 
+        /// var assetInfo = await dataContext.LoadByKeyAsync&lt;Asset&gt;(assetKey).SingleAsync();
+        /// </code>
+        /// </example>
+        public static async IAsyncEnumerable<TEntity> LoadByKeyAsync<TEntity>(this DbContext dataContext,
+          object?[] parameters, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+          where TEntity : class, new()
+        {
+            // Any changes made here should also be made to LoadByKey if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(parameters);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+#endif
+            var (connection, command, properties, neverTrack, entityType) = CreateLoadCommand<TEntity>(
+                dataContext, parameters);
+            bool closeConnection = false;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var entity = (TEntity)Activator.CreateInstance(entityType)!;
+
+                    for(int column = 0; column < reader.FieldCount; column++)
+                    {
+                        object? value = reader.GetValue(column);
+
+                        // Set the entity values based on what is returned by the stored procedure rather than
+                        // what's in the entity.  This allows us to use different stored procedures with a common
+                        // entity type even if the stored procedures don't return the same set of columns.
+                        if(value != null && properties.TryGetValue(reader.GetName(column), out var p))
+                            p.SetValueFromDatabase(entity, value);
+                    }
+
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+                        dataContext.Attach(entity);
+
+                    yield return entity;
+                }
+            }
+            finally
+            {
+                command?.Dispose();
+
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
             }
         }
 
@@ -788,105 +1300,42 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static int InsertEntity<TEntity>(this DbContext dataContext, TEntity entity)
         {
-#if !NETSTANDARD2_0
-            ArgumentNullException.ThrowIfNull(dataContext);
-            ArgumentNullException.ThrowIfNull(entity);
-#else
-            if(dataContext == null)
-                throw new ArgumentNullException(nameof(dataContext));
+            return InsertUpdateEntityInternal(dataContext, entity, true);
+        }
 
-            if(entity == null)
-                throw new ArgumentNullException(nameof(entity));
-#endif
-            Type entityType = typeof(TEntity);
-
-            var spName = entityType.GetCustomAttributes<InsertEntityStoredProcedureAttribute>().FirstOrDefault() ??
-                throw new NotSupportedException("The specified entity type is not decorated with the " +
-                    nameof(InsertEntityStoredProcedureAttribute));
-
-            var namePrefix = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
-            var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
-            var connection = dataContext.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
-
-            var inOutParams = new List<(PropertyInfo Property, SqlParameter Parameter)>();
-
-            // Get the primary key for the entity type
-            var properties = entityType.GetProperties();
-            var keys = DetermineKeyProperties(dataContext, entityType, properties).ToList();
-
-            // Add a parameter for each public property unless it is ignored for updates
-            foreach(var p in properties)
-            {
-                var ignored = p.GetCustomAttribute<IgnoreAttribute>();
-
-                if(!(ignored?.ForInsert ?? false))
-                {
-                    // If the property has a column attribute, use the name from it instead
-                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
-                    var timestamp = p.GetCustomAttribute<TimestampAttribute>();
-
-                    // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
-                    // using any default value assigned to the parameter.
-                    var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? p.Name}",
-                        p.GetValue(entity) ?? DBNull.Value);
-                    param.SetParameterType(p.PropertyType);
-
-                    // If it's a time stamp or a single key column that looks like an identity column, make it an
-                    // input/output parameter.  Primary keys with multiple columns or non-integer keys are not
-                    // assumed to be output parameters.
-                    if(timestamp != null || (keys.Count == 1 && param.SqlDbType == SqlDbType.Int && keys[0] == p.Name))
-                    {
-                        param.Direction = ParameterDirection.InputOutput;
-                        inOutParams.Add((p, param));
-                    }
-
-                    command.Parameters.Add(param);
-                }
-            }
-
-            bool closeConnection = false;
-            int rowsAffected;
-
-            try
-            {
-                // If the connection is already open, we won't close it when done
-                if(connection.State != ConnectionState.Open)
-                {
-                    connection.Open();
-                    closeConnection = true;
-                }
-
-                rowsAffected = command.ExecuteNonQuery();
-
-                // Update output parameters with their values
-                foreach(var inOut in inOutParams)
-                    inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
-            }
-            finally
-            {
-                if(closeConnection)
-                    connection.Close();
-            }
-
-            if(neverTrack == null &&
-              dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
-            {
-                var changeEntry = dataContext.Entry(entity);
-
-                if(changeEntry != null)
-                {
-                    // We must set the original values to the new values first before marking it unchanged
-                    // or it reverts the values to the original unmodified values.
-                    changeEntry.OriginalValues.SetValues(changeEntry.Entity);
-                    changeEntry.State = EntityState.Unchanged;
-                }
-            }
-
-            return rowsAffected;
+        /// <summary>
+        /// Insert the given entity asynchronously using a stored procedure defined on the entity type
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type to insert</typeparam>
+        /// <param name="dataContext">The data context to use when inserting the entity</param>
+        /// <param name="entity">The entity to insert</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>The number of rows affected assuming the stored procedure is not using <c>SET NOCOUNT ON</c></returns>
+        /// <remarks>
+        /// <para>The stored procedure name is determined by looking for the
+        /// <see cref="InsertEntityStoredProcedureAttribute"/> on the entity type.  The stored procedure must
+        /// have parameters for each of the entity properties except those marked with the
+        /// <see cref="IgnoreAttribute"/> for inserts.  It should not return a value or a result set.  Parameters
+        /// related to the primary key (single column, integer only) or marked with the <see cref="TimestampAttribute"/>
+        /// are defined as input/out parameters.  All other parameters are input only.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while updating the entity.
+        /// If change tracking is enabled on the data context and the entity its state will be set to
+        /// unchanged.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = new MyDbContext();
+        /// 
+        /// if(watchListItem.WatchID == 0)
+        ///     await dataContext.InsertEntityAsync(watchListItem);
+        /// else
+        ///     await dataContext.UpdateEntityAsync(watchListItem);
+        /// </code>
+        /// </example>
+        public static async Task<int> InsertEntityAsync<TEntity>(this DbContext dataContext, TEntity entity,
+          CancellationToken cancellationToken = default)
+        {
+            return await InsertUpdateEntityInternalAsync(dataContext, entity, true, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -919,100 +1368,42 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static int UpdateEntity<TEntity>(this DbContext dataContext, TEntity entity)
         {
-#if !NETSTANDARD2_0
-            ArgumentNullException.ThrowIfNull(dataContext);
-            ArgumentNullException.ThrowIfNull(entity);
-#else
-            if(dataContext == null)
-                throw new ArgumentNullException(nameof(dataContext));
+            return InsertUpdateEntityInternal(dataContext, entity, false);
+        }
 
-            if(entity == null)
-                throw new ArgumentNullException(nameof(entity));
-#endif
-            Type entityType = typeof(TEntity);
-
-            var spName = entityType.GetCustomAttributes<UpdateEntityStoredProcedureAttribute>().FirstOrDefault() ??
-                throw new NotSupportedException("The specified entity type is not decorated with the " +
-                    nameof(UpdateEntityStoredProcedureAttribute));
-
-            var namePrefix = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
-            var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
-            var connection = dataContext.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
-
-            var properties = entityType.GetProperties();
-            var inOutParams = new List<(PropertyInfo Property, SqlParameter Parameter)>();
-
-            // Add a parameter for each public property unless it is ignored for updates
-            foreach(var p in properties)
-            {
-                var ignored = p.GetCustomAttribute<IgnoreAttribute>();
-
-                if(!(ignored?.ForUpdate ?? false))
-                {
-                    // If the property has a column attribute, use the name from it instead
-                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
-                    var timestamp = p.GetCustomAttribute<TimestampAttribute>();
-
-                    // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
-                    // using any default value assigned to the parameter.
-                    var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? p.Name}",
-                        p.GetValue(entity) ?? DBNull.Value);
-                    param.SetParameterType(p.PropertyType);
-
-                    // If it's a time stamp make it an input/output parameter
-                    if(timestamp != null)
-                    {
-                        param.Direction = ParameterDirection.InputOutput;
-                        inOutParams.Add((p, param));
-                    }
-
-                    command.Parameters.Add(param);
-                }
-            }
-
-            bool closeConnection = false;
-            int rowsAffected;
-
-            try
-            {
-                // If the connection is already open, we won't close it when done
-                if(connection.State != ConnectionState.Open)
-                {
-                    connection.Open();
-                    closeConnection = true;
-                }
-
-                rowsAffected = command.ExecuteNonQuery();
-
-                // Update output parameters with their values
-                foreach(var inOut in inOutParams)
-                    inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
-            }
-            finally
-            {
-                if(closeConnection)
-                    connection.Close();
-            }
-
-            if(neverTrack == null &&
-              dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
-            {
-                var changeEntry = dataContext.Entry(entity);
-
-                if(changeEntry != null)
-                {
-                    // We must set the original values to the new values first before marking it unchanged
-                    // or it reverts the values to the original unmodified values.
-                    changeEntry.OriginalValues.SetValues(changeEntry.Entity);
-                    changeEntry.State = EntityState.Unchanged;
-                }
-            }
-
-            return rowsAffected;
+        /// <summary>
+        /// Update the given entity asynchronously using a stored procedure defined on the entity type
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type to update</typeparam>
+        /// <param name="dataContext">The data context to use when updating the entity</param>
+        /// <param name="entity">The entity to update</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>The number of rows affected assuming the stored procedure is not using <c>SET NOCOUNT ON</c></returns>
+        /// <remarks>
+        /// <para>The stored procedure name is determined by looking for the
+        /// <see cref="UpdateEntityStoredProcedureAttribute"/> on the entity type.  The stored procedure must
+        /// have parameters for each of the entity properties except those marked with the
+        /// <see cref="IgnoreAttribute"/> for updates.  It should not return a value or a result set.  Parameters
+        /// marked with the <see cref="TimestampAttribute"/> are defined as input/out parameters.  All other
+        /// parameters are input only.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while updating the entity.
+        /// If change tracking is enabled on the data context and the entity its state will be set to
+        /// unchanged.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = new MyDbContext();
+        /// 
+        /// if(watchListItem.WatchID == 0)
+        ///     await dataContext.InsertEntityAsync(watchListItem);
+        /// else
+        ///     await dataContext.UpdateEntityAsync(watchListItem);
+        /// </code>
+        /// </example>
+        public static async Task<int> UpdateEntityAsync<TEntity>(this DbContext dataContext, TEntity entity,
+          CancellationToken cancellationToken = default)
+        {
+            return await InsertUpdateEntityInternalAsync(dataContext, entity, false, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1040,6 +1431,7 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static int DeleteEntity<TEntity>(this DbContext dataContext, TEntity entity)
         {
+            // Any changes made here should also be made to DeleteEntityAsync if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
             ArgumentNullException.ThrowIfNull(entity);
@@ -1050,39 +1442,7 @@ namespace EWSoftware.EntityFramework
             if(entity == null)
                 throw new ArgumentNullException(nameof(entity));
 #endif
-            Type entityType = typeof(TEntity);
-
-            var spName = entityType.GetCustomAttributes<DeleteEntityStoredProcedureAttribute>().FirstOrDefault() ??
-                throw new NotSupportedException("The specified entity type is not decorated with the " +
-                    nameof(DeleteEntityStoredProcedureAttribute));
-
-            var namePrefix = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
-            var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
-            var connection = dataContext.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName.StoredProcedureName);
-
-            // Get the primary key for the entity type and add a parameter for each key field
-            var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
-
-            foreach(string key in DetermineKeyProperties(dataContext, entityType, properties.Values))
-            {
-                if(!properties.TryGetValue(key, out var p))
-                    throw new InvalidOperationException($"The key property {key} was not found on the entity");
-
-                // If the property has a column attribute, use the name from it instead
-                var columnName = p.GetCustomAttribute<ColumnAttribute>();
-
-                // If the property value is null, use DBNull.Value to send a NULL to the database rather than
-                // using any default value assigned to the parameter.
-                var param = new SqlParameter($"@{spName.ParameterNamePrefix ?? namePrefix?.Prefix}{columnName?.Name ?? key}",
-                    p.GetValue(entity) ?? DBNull.Value);
-                param.SetParameterType(p.PropertyType);
-                command.Parameters.Add(param);
-            }
-
+            var (connection, command, neverTrack) = CreateDeleteCommand(dataContext, entity);
             bool closeConnection = false;
             int rowsAffected;
 
@@ -1099,18 +1459,95 @@ namespace EWSoftware.EntityFramework
             }
             finally
             {
+                command?.Dispose();
+
                 if(closeConnection)
                     connection.Close();
             }
 
-            if(neverTrack == null &&
-              dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+            if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
             {
                 var changeEntry = dataContext.Entry(entity);
 
                 // No need to update the original values here
-                if(changeEntry != null)
-                    changeEntry.State = EntityState.Detached;
+                changeEntry.State = EntityState.Detached;
+            }
+
+            return rowsAffected;
+        }
+
+        /// <summary>
+        /// Delete the given entity asynchronously using a stored procedure defined on the entity type
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type to delete</typeparam>
+        /// <param name="dataContext">The data context to use when deleting the entity</param>
+        /// <param name="entity">The entity to delete</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>The number of rows affected assuming the stored procedure is not using <c>SET NOCOUNT ON</c></returns>
+        /// <remarks><para>The stored procedure name is determined by looking for the
+        /// <see cref="DeleteEntityStoredProcedureAttribute"/> on the entity type.  The stored procedure must
+        /// have one or more parameters representing the key columns on the entity type identified with a
+        /// <c>PrimaryKeyAttribute</c> or one or more properties with a <c>KeyAttribute</c> or defined by the
+        /// data context.  It should not return a value or a result set.  All parameters are input only.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while deleting the entity.
+        /// If change tracking is enabled on the data context and the entity its state will be set to
+        /// unattached.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// using var dataContext = new MyDbContext();
+        /// 
+        /// await dataContext.DeleteEntityAsync(watchListItem);
+        /// </code>
+        /// </example>
+        public static async Task<int> DeleteEntityAsync<TEntity>(this DbContext dataContext, TEntity entity,
+          CancellationToken cancellationToken = default)
+        {
+            // Any changes made here should also be made to DeleteEntity if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(entity);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(entity == null)
+                throw new ArgumentNullException(nameof(entity));
+#endif
+            var (connection, command, neverTrack) = CreateDeleteCommand(dataContext, entity);
+            bool closeConnection = false;
+            int rowsAffected;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(true);
+            }
+            finally
+            {
+                command?.Dispose();
+
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
+            }
+
+            if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+            {
+                var changeEntry = dataContext.Entry(entity);
+
+                // No need to update the original values here
+                changeEntry.State = EntityState.Detached;
             }
 
             return rowsAffected;
@@ -1130,11 +1567,12 @@ namespace EWSoftware.EntityFramework
         /// <example>
         /// <code language="cs">
         /// if(dataContext.HasChanges())
-        ///     dataContext.SubmitEntityChanges&lt;Account&gt;();
+        ///     dataContext.SubmitChanges&lt;Account&gt;();
         /// </code>
         /// </example>
         public static void SubmitChanges<TEntity>(this DbContext dataContext) where TEntity : ChangeTrackingEntity
         {
+            // Any changes made here should also be made to SubmitChangesAsync(dataContext) if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
 #else
@@ -1184,6 +1622,82 @@ namespace EWSoftware.EntityFramework
         }
 
         /// <summary>
+        /// Submit all tracked add, update, and delete changes asynchronously for the given entity type using the
+        /// stored procedures defined on the entity type with the <see cref="InsertEntityStoredProcedureAttribute"/>,
+        /// <see cref="UpdateEntityStoredProcedureAttribute"/>, and <see cref="DeleteEntityStoredProcedureAttribute"/>.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type for which to submit changes</typeparam>
+        /// <param name="dataContext">The data context to use for the operations</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <remarks>This will get the changed entities from the data context's change tracker and submit them
+        /// accordingly.  The state of the entities is also updated to reflect that they are in an unchanged
+        /// state after being added or updated or detached if deleted.  If the connection is not in an open
+        /// state, it is opened temporarily while performing the actions.</remarks>
+        /// <example>
+        /// <code language="cs">
+        /// if(dataContext.HasChanges())
+        ///     await dataContext.SubmitChangesAsync&lt;Account&gt;();
+        /// </code>
+        /// </example>
+        public static async Task SubmitChangesAsync<TEntity>(this DbContext dataContext,
+          CancellationToken cancellationToken = default) where TEntity : ChangeTrackingEntity
+        {
+            // Any changes made here should also be made to SubmitChanges(dataContext) if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+#endif
+            var connection = dataContext.Database.GetDbConnection();
+            bool closeConnection = false;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                foreach(var change in dataContext.ChangeTracker.Entries<TEntity>().Where(
+                  e => e.State != EntityState.Unchanged).ToList())
+                {
+                    // The insert, update, and delete methods, handle the state change so we don't have to do it here
+                    switch(change.State)
+                    {
+                        case EntityState.Added:
+                            await dataContext.InsertEntityAsync(change.Entity, cancellationToken).ConfigureAwait(false);
+                            break;
+
+                        case EntityState.Modified:
+                            await dataContext.UpdateEntityAsync(change.Entity, cancellationToken).ConfigureAwait(false);
+                            break;
+
+                        case EntityState.Deleted:
+                            await dataContext.DeleteEntityAsync(change.Entity, cancellationToken).ConfigureAwait(false);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+            finally
+            {
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
+            }
+        }
+
+        /// <summary>
         /// Submit all tracked add, update, and delete changes for the given entity type using supplied functions
         /// that allow for custom handling of the operations.
         /// </summary>
@@ -1209,29 +1723,30 @@ namespace EWSoftware.EntityFramework
         /// {
         ///     // Submit changes using stored procedure methods on the data context
         ///     dataContext.SubmitChanges&lt;StateCode&gt;(
-        ///         e =&gt;
+        ///         se =&gt;
         ///         {
-        ///             dataContext.spStateCodeAddUpdate(null, e.Entity.State, e.Entity.StateDesc);
+        ///             dataContext.spStateCodeAddUpdate(null, se.Entity.State, se.Entity.StateDesc);
         ///             return true;
         ///         },
-        ///         e =&gt;
+        ///         se =&gt;
         ///         {
-        ///             dataContext.spStateCodeAddUpdate((string?)e.OriginalValues[nameof(StateCode.State)],
-        ///                 e.Entity.State, e.Entity.StateDesc);
+        ///             dataContext.spStateCodeAddUpdate((string?)se.OriginalValues[nameof(StateCode.State)],
+        ///                 se.Entity.State, se.Entity.StateDesc);
         ///             return true;
         ///         },
-        ///         e =&gt;
+        ///         se =&gt;
         ///         {
-        ///             dataContext.spStateCodeDelete((string?)e.OriginalValues[nameof(StateCode.State)]);
+        ///             dataContext.spStateCodeDelete((string?)se.OriginalValues[nameof(StateCode.State)]);
         ///             return true;
         ///         });
         /// }
         /// </code>
         /// </example>
         public static void SubmitChanges<TEntity>(this DbContext dataContext,
-          Func<EntityEntry<TEntity>, bool> insert, Func<EntityEntry<TEntity>, bool> update,
-          Func<EntityEntry<TEntity>, bool> delete) where TEntity : ChangeTrackingEntity
+          Func<EntityEntry<TEntity>, bool>? insert, Func<EntityEntry<TEntity>, bool>? update,
+          Func<EntityEntry<TEntity>, bool>? delete) where TEntity : ChangeTrackingEntity
         {
+            // Any changes made here should also be made to SubmitChangesAsync(dataContext, insert, ...) if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
 #else
@@ -1296,6 +1811,130 @@ namespace EWSoftware.EntityFramework
         }
 
         /// <summary>
+        /// Submit all tracked add, update, and delete changes asynchronously for the given entity type using
+        /// supplied functions that allow for custom handling of the operations.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type for which to submit changes</typeparam>
+        /// <param name="dataContext">The data context to use for the operations</param>
+        /// <param name="insert">The asynchronous function to invoke to handle insertions.  It is passed the
+        /// entity change entry and should return true if the insertion was made or false if not.  If null, the
+        /// action is ignored.</param>
+        /// <param name="update">The asynchronous function to invoke to handle updates.  It is passed the entity
+        /// change entry and should return true if the update was made or false if not.    If null, the action is
+        /// ignored.</param>
+        /// <param name="delete">The asynchronous function to invoke to handle deletions.  It is passed the
+        /// entity change entry and should return true if the delete was made or false if not.  If null, the
+        /// action is ignored.</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <remarks>This will get the changed entities from the data context's change tracker and submit them
+        /// accordingly using the given functions.  If the corresponding function returns true, the state of the
+        /// entity is updated to reflect that it is in an unchanged state after being added or updated or
+        /// detached if deleted.  If the connection is not in an open state, it is opened temporarily while
+        /// performing the actions.</remarks>
+        /// <example>
+        /// <code language="cs">
+        /// if(dataContext.HasChanges())
+        /// {
+        ///     // Submit changes using stored procedure methods on the data context
+        ///     dataContext.SubmitChangesAsync&lt;StateCode&gt;(
+        ///         async se =&gt;
+        ///         {
+        ///             await dataContext.spStateCodeAddUpdate(null, se.Entity.State, se.Entity.StateDesc);
+        ///             return true;
+        ///         },
+        ///         async se =&gt;
+        ///         {
+        ///             await dataContext.spStateCodeAddUpdate((string?)se.OriginalValues[nameof(StateCode.State)],
+        ///                 se.Entity.State, se.Entity.StateDesc);
+        ///             return true;
+        ///         },
+        ///         async se =&gt;
+        ///         {
+        ///             await dataContext.spStateCodeDelete((string?)se.OriginalValues[nameof(StateCode.State)]);
+        ///             return true;
+        ///         });
+        /// }
+        /// </code>
+        /// </example>
+        public static async Task SubmitChangesAsync<TEntity>(this DbContext dataContext,
+          Func<EntityEntry<TEntity>, Task<bool>>? insert,
+          Func<EntityEntry<TEntity>, Task<bool>>? update,
+          Func<EntityEntry<TEntity>, Task<bool>>? delete,
+          CancellationToken cancellationToken = default) where TEntity : ChangeTrackingEntity
+        {
+            // Any changes made here should also be made to SubmitChanges(dataContext, insert, ...) if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+#endif
+            var connection = dataContext.Database.GetDbConnection();
+            bool closeConnection = false;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                foreach(var change in dataContext.ChangeTracker.Entries<TEntity>().Where(
+                  e => e.State != EntityState.Unchanged).ToList())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    switch(change.State)
+                    {
+                        case EntityState.Added:
+                            if(insert != null && await insert(change).ConfigureAwait(false))
+                            {
+                                // We must set the original values to the new values first before marking it unchanged
+                                // or it reverts the values to the original unmodified values.
+                                change.OriginalValues.SetValues(change.Entity);
+                                change.State = EntityState.Unchanged;
+                            }
+                            break;
+
+                        case EntityState.Modified:
+                            if(update != null && await update(change).ConfigureAwait(false))
+                            {
+                                // We must set the original values to the new values first before marking it unchanged
+                                // or it reverts the values to the original unmodified values.
+                                change.OriginalValues.SetValues(change.Entity);
+                                change.State = EntityState.Unchanged;
+                            }
+                            break;
+
+                        case EntityState.Deleted:
+                            if(delete != null && await delete(change).ConfigureAwait(false))
+                            {
+                                // No need to update the original values here
+                                change.State = EntityState.Unchanged;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+            finally
+            {
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
+            }
+        }
+
+        /// <summary>
         /// Execute a non-query stored procedure associated with a method on a data context and return the
         /// stored procedure's return value, number of rows affected, and optionally output parameter values.
         /// </summary>
@@ -1348,6 +1987,7 @@ namespace EWSoftware.EntityFramework
         public static (int RowsAffected, int ReturnValue, IReadOnlyDictionary<string, object?> OutputValues)ExecuteMethodNonQuery(
           this DbContext dataContext, MethodInfo methodInfo, params object?[] parameters)
         {
+            // Any changes made here should also be made to ExecuteNonMethodQueryAsync if necessary
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
             ArgumentNullException.ThrowIfNull(methodInfo);
@@ -1399,6 +2039,152 @@ namespace EWSoftware.EntityFramework
         }
 
         /// <summary>
+        /// Execute a non-query stored procedure associated with a method on a data context asynchronously and
+        /// return the stored procedure's return value, number of rows affected, and optionally output parameter
+        /// values.
+        /// </summary>
+        /// <param name="dataContext">The data context on which to execute the stored procedure</param>
+        /// <param name="methodInfo">The method info for the calling method</param>
+        /// <param name="parameters">Zero or more parameter values to be passed to the stored procedure.  These
+        /// must match the parameter order of the calling data context method.</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>A tuple containing the number of rows affected assuming the stored procedure is not using
+        /// <c>SET NOCOUNT ON</c>,  the return value of the stored procedure if any, and a dictionary containing
+        /// any output parameters indexed by method parameter name with the value being the output value from the
+        /// stored procedure.</returns>
+        /// <remarks><para>The stored procedure name is determined by looking for the
+        /// <see cref="MethodStoredProcedureAttribute"/> on the calling data context method.  If not specified,
+        /// the stored procedure name is assumed to be the same as the calling method's name.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while executing the stored
+        /// procedure.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// // Execute a stored procedure and return its return value
+        /// [MethodStoredProcedure("spStockAdd")]
+        /// public async int spStockAddAsync(string symbol, string assetDescription,
+        ///   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
+        /// {
+        ///     // When called asynchronously, the parameters must be passed as an array
+        ///     // and we must get the method info from the stack trace as we're inside the
+        ///     // compiler generated state machine at this point.  We must also specify the
+        ///     // stored procedure name in the method attribute if the method name does not
+        ///     // match the stored procedure name.
+        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        ///         frame => frame.GetMethod()).FirstOrDefault(
+        ///             item => item!.DeclaringType == GetType()) ??
+        ///                throw new InvalidOperationException("Unable to get async method info"));
+        ///
+        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol, assetDescription,
+        ///         currentBid, currentAsk, priceChangePercent]);
+        ///         
+        ///     return result.ReturnValue;
+        /// }
+        /// 
+        /// // Execute a stored procedure and return the number of rows affected
+        /// [MethodStoredProcedure("spStockDelete")]
+        /// public async int spStockDeleteAsync(string symbol)
+        /// {
+        ///     // When called asynchronously, the parameters must be passed as an array
+        ///     // and we must get the method info from the stack trace as we're inside the
+        ///     // compiler generated state machine at this point.  We must also specify the
+        ///     // stored procedure name in the method attribute if the method name does not
+        ///     // match the stored procedure name.
+        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+        ///             throw new InvalidOperationException("Unable to get async method info"));
+        ///
+        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol]);
+        ///     
+        ///     return result.RowsAffected;
+        /// }
+        /// 
+        /// // Execute a stored procedure and return the output parameters via the ref parameters on
+        /// // the method.  We can also return the stored procedure's return value or rows affected.
+        /// [MethodStoredProcedure("spCheckForEmployeeSchedule")]
+        /// public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
+        ///   ref bool bidGroupScheduled, ref bool entityScheduled)
+        /// {
+        ///     // When called asynchronously, the parameters must be passed as an array
+        ///     // and we must get the method info from the stack trace as we're inside the
+        ///     // compiler generated state machine at this point.  We must also specify the
+        ///     // stored procedure name in the method attribute if the method name does not
+        ///     // match the stored procedure name.
+        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+        ///             throw new InvalidOperationException("Unable to get async method info"));
+        ///
+        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [bidGroup, entityKey,
+        ///         bidGroupScheduled, entityScheduled]);
+        ///
+        ///     bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
+        ///     entityScheduled = (bool)result.OutputValues[nameof(entityScheduled);
+        ///
+        ///     return result.ReturnValue;
+        /// }
+        /// </code>
+        /// </example>
+        public static async Task<(int RowsAffected, int ReturnValue, IReadOnlyDictionary<string, object?> OutputValues)>
+            ExecuteMethodNonQueryAsync(this DbContext dataContext, MethodInfo methodInfo,
+              object?[] parameters, CancellationToken cancellationToken = default)
+        {
+            // Any changes made here should also be made to ExecuteNonMethodQuery if necessary
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(methodInfo);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(methodInfo == null)
+                throw new ArgumentNullException(nameof(methodInfo));
+#endif
+            var connection = dataContext.Database.GetDbConnection();
+            using var command = connection.CreateCommand();
+
+            var inOutParams = PrepareMethodCommand(dataContext, command, methodInfo, parameters);
+
+            bool closeConnection = false;
+            int rowsAffected = 0;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
+            }
+
+            var outputValues = inOutParams.ToDictionary(
+                k => k.ParameterName,
+                v =>
+                {
+                    var value = command.Parameters[v.ParameterIndex].Value;
+
+                    if(value == DBNull.Value)
+                        value = null;
+
+                    return value;
+                });
+
+            return (rowsAffected, (int)command.Parameters["@___returnValue"].Value!, outputValues);
+        }
+
+        /// <summary>   
         /// Execute a query stored procedure associated with a method on a data context and return the
         /// stored procedure's result set as an enumerable list of the given entity type.
         /// </summary>
@@ -1459,10 +2245,10 @@ namespace EWSoftware.EntityFramework
                 }
 
                 Type entityType = typeof(TEntity);
-                var neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().FirstOrDefault();
+                bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
+                var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
 
                 using var reader = command.ExecuteReader();
-                var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
 
                 while(reader.Read())
                 {
@@ -1479,20 +2265,140 @@ namespace EWSoftware.EntityFramework
                             p.SetValueFromDatabase(entity, value);
                     }
 
-                    if(neverTrack == null &&
-                      dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
-                    {
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
                         dataContext.Attach(entity);
-                    }
 
                     yield return entity;
                 }
-
             }
             finally
             {
                 if(closeConnection)
                     connection.Close();
+            }
+        }
+
+        /// <summary>   
+        /// Execute a query stored procedure associated with a method on a data context and return the
+        /// stored procedure's result set asynchronously as an enumerable list of the given entity type.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type returned by the query</typeparam>
+        /// <param name="dataContext">The data context on which to execute the stored procedure</param>
+        /// <param name="methodInfo">The method info for the calling method</param>
+        /// <param name="parameters">Zero or more parameter values to be passed to the stored procedure.  These
+        /// must match the parameter order of the calling data context method.</param>
+        /// <param name="cancellationToken">An optional cancellation token</param>
+        /// <returns>An enumerable list of the given entity type.</returns>
+        /// <remarks><para>The stored procedure name is determined by looking for the
+        /// <see cref="MethodStoredProcedureAttribute"/> on the calling data context method.  If not specified,
+        /// the stored procedure name is assumed to be the same as the calling method's name.</para>
+        /// 
+        /// <para>If the connection is not in an open state, it is opened temporarily while loading the entities.
+        /// If change tracking is enabled on the data context, changes to the entities will be tracked.  If not
+        /// or the entity is marked with the <see cref="NeverTrackAttribute"/>, they will not be tracked.</para></remarks>
+        /// <example>
+        /// <code language="cs">
+        /// // Execute a search stored procedure and return its result set
+        /// [MethodStoredProcedure("spTransactionList")]
+        /// public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
+        ///   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
+        /// {
+        ///     // When called asynchronously, the parameters must be passed as an array
+        ///     // and we must get the method info from the stack trace as we're inside the
+        ///     // compiler generated state machine at this point.  We must also specify the
+        ///     // stored procedure name in the method attribute if the method name does not
+        ///     // match the stored procedure name.
+        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+        ///             throw new InvalidOperationException("Unable to get async method info"));
+        ///
+        ///     // Note that we can't pass a cancellation token as it would look like one of
+        ///     // the method parameters.  Use the WithCancellation() extension method on the
+        ///     // call to this method instead.
+        ///     return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(methodInfo,
+        ///         [accountKey, symbol, fromDate, toDate, txType]);
+        /// }
+        /// 
+        /// // We can't pass the cancellation token to the query method as it will look like
+        /// // a parameter to the stored procedure.  We need to use the WithCancellation()
+        /// // extension method instead.
+        /// var cts = new CancellationTokenSource();
+        /// 
+        /// await foreach(var t in dc.spTransactionList(1, "MSFT", fromDate,
+        ///     toDate, null).WithCancellation(cts.Token))
+        /// {
+        ///     ....
+        /// }
+        /// </code>
+        /// </example>
+        public static async IAsyncEnumerable<TEntity> ExecuteMethodQueryAsync<TEntity>(
+          this DbContext dataContext, MethodInfo methodInfo, object?[] parameters,
+          [EnumeratorCancellation] CancellationToken cancellationToken = default) where TEntity : class, new()
+        {
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+            ArgumentNullException.ThrowIfNull(methodInfo);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+
+            if(methodInfo == null)
+                throw new ArgumentNullException(nameof(methodInfo));
+#endif
+            var connection = dataContext.Database.GetDbConnection();
+            using var command = connection.CreateCommand();
+
+            // I suppose it's possible to have output parameters and return a result set but it's probably a
+            // rare case so we're not going to handle it here for now.
+            PrepareMethodCommand(dataContext, command, methodInfo, parameters);
+
+            bool closeConnection = false;
+
+            try
+            {
+                // If the connection is already open, we won't close it when done
+                if(connection.State != ConnectionState.Open)
+                {
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    closeConnection = true;
+                }
+
+                Type entityType = typeof(TEntity);
+                bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
+                var properties = entityType.GetProperties().ToDictionary(k => k.Name, v => v);
+
+                using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var entity = (TEntity)Activator.CreateInstance(entityType)!;
+
+                    for(int column = 0; column < reader.FieldCount; column++)
+                    {
+                        object? value = reader.GetValue(column);
+
+                        // Set the entity values based on what is returned by the stored procedure rather than
+                        // what's in the entity.  This allows us to use different stored procedures with a common
+                        // entity type even if the stored procedures don't return the same set of columns.
+                        if(value != null && properties.TryGetValue(reader.GetName(column), out var p))
+                            p.SetValueFromDatabase(entity, value);
+                    }
+
+                    if(!neverTrack && dataContext.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.TrackAll)
+                        dataContext.Attach(entity);
+
+                    yield return entity;
+                }
+            }
+            finally
+            {
+#if !NETSTANDARD2_0
+                if(closeConnection)
+                    await connection.CloseAsync().ConfigureAwait(false);
+#else
+                if(closeConnection)
+                    connection.Close();
+#endif
             }
         }
         #endregion
@@ -1519,7 +2425,7 @@ namespace EWSoftware.EntityFramework
         public static TrackingBindingList<TEntity> ToTrackingBindingList<TEntity>(this IEnumerable<TEntity> entities,
           DbContext dataContext) where TEntity : ChangeTrackingEntity
         {
-            return new TrackingBindingList<TEntity>(dataContext, entities.ToList());
+            return new TrackingBindingList<TEntity>(dataContext, [.. entities]);
         }
 
         /// <summary>
@@ -1668,7 +2574,7 @@ namespace EWSoftware.EntityFramework
         /// </code>
         /// </example>
         /// <seealso cref="ToNullable{T}(Object)" />
-        public static Nullable<T> ToNullable<T>(this T value) where T : struct
+        public static T? ToNullable<T>(this T value) where T : struct
         {
             T defValue = default;
 
@@ -1700,7 +2606,7 @@ namespace EWSoftware.EntityFramework
         /// </code>
         /// </example>
         /// <seealso cref="ToNullable{T}(T)" />
-        public static Nullable<T> ToNullable<T>(this object? value) where T : struct
+        public static T? ToNullable<T>(this object? value) where T : struct
         {
             if(value == null || value == DBNull.Value)
                 return null;

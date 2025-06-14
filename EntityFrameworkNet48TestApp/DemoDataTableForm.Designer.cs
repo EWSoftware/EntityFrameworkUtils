@@ -33,7 +33,7 @@ namespace EntityFrameworkNet48TestApp
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             btnClose = new Button();
             btnSave = new Button();
             dgvDemoData = new DataGridView();
@@ -55,6 +55,7 @@ namespace EntityFrameworkNet48TestApp
             label3 = new Label();
             txtGuidValue = new TextBox();
             btnClearValues = new Button();
+            btnSaveAsync = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvDemoData).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bsDemoData).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pbImage).BeginInit();
@@ -67,7 +68,7 @@ namespace EntityFrameworkNet48TestApp
             btnClose.Location = new Point(782, 509);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(88, 32);
-            btnClose.TabIndex = 11;
+            btnClose.TabIndex = 12;
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = true;
             btnClose.Click += this.btnClose_Click;
@@ -158,13 +159,13 @@ namespace EntityFrameworkNet48TestApp
             // 
             // btncDelete
             // 
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.Padding = new Padding(2);
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Control;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.ControlText;
-            btncDelete.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = SystemColors.Control;
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.Padding = new Padding(2);
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Control;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.ControlText;
+            btncDelete.DefaultCellStyle = dataGridViewCellStyle2;
             btncDelete.HeaderText = "";
             btncDelete.MinimumWidth = 6;
             btncDelete.Name = "btncDelete";
@@ -181,10 +182,10 @@ namespace EntityFrameworkNet48TestApp
             // btnSetXml
             // 
             btnSetXml.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetXml.Location = new Point(106, 509);
+            btnSetXml.Location = new Point(305, 509);
             btnSetXml.Name = "btnSetXml";
             btnSetXml.Size = new Size(88, 32);
-            btnSetXml.TabIndex = 7;
+            btnSetXml.TabIndex = 8;
             btnSetXml.Text = "Set &XML";
             btnSetXml.UseVisualStyleBackColor = true;
             btnSetXml.Click += this.btnSetXml_Click;
@@ -192,10 +193,10 @@ namespace EntityFrameworkNet48TestApp
             // btnSetGuid
             // 
             btnSetGuid.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetGuid.Location = new Point(200, 509);
+            btnSetGuid.Location = new Point(399, 509);
             btnSetGuid.Name = "btnSetGuid";
             btnSetGuid.Size = new Size(88, 32);
-            btnSetGuid.TabIndex = 8;
+            btnSetGuid.TabIndex = 9;
             btnSetGuid.Text = "Set &GUID";
             btnSetGuid.UseVisualStyleBackColor = true;
             btnSetGuid.Click += this.btnSetGuid_Click;
@@ -213,10 +214,10 @@ namespace EntityFrameworkNet48TestApp
             // btnSetImage
             // 
             btnSetImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetImage.Location = new Point(294, 509);
+            btnSetImage.Location = new Point(493, 509);
             btnSetImage.Name = "btnSetImage";
             btnSetImage.Size = new Size(88, 32);
-            btnSetImage.TabIndex = 9;
+            btnSetImage.TabIndex = 10;
             btnSetImage.Text = "Set &Image";
             btnSetImage.UseVisualStyleBackColor = true;
             btnSetImage.Click += this.btnSetImage_Click;
@@ -274,18 +275,30 @@ namespace EntityFrameworkNet48TestApp
             // btnClearValues
             // 
             btnClearValues.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnClearValues.Location = new Point(388, 509);
+            btnClearValues.Location = new Point(587, 509);
             btnClearValues.Name = "btnClearValues";
             btnClearValues.Size = new Size(120, 32);
-            btnClearValues.TabIndex = 10;
+            btnClearValues.TabIndex = 11;
             btnClearValues.Text = "Clear &Values";
             btnClearValues.UseVisualStyleBackColor = true;
             btnClearValues.Click += this.btnClearValues_Click;
+            // 
+            // btnSaveAsync
+            // 
+            btnSaveAsync.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSaveAsync.Location = new Point(106, 509);
+            btnSaveAsync.Name = "btnSaveAsync";
+            btnSaveAsync.Size = new Size(120, 32);
+            btnSaveAsync.TabIndex = 7;
+            btnSaveAsync.Text = "Save &Async";
+            btnSaveAsync.UseVisualStyleBackColor = true;
+            btnSaveAsync.Click += this.btnSaveAsync_Click;
             // 
             // DemoDataTableForm
             // 
             this.AutoScaleMode = AutoScaleMode.Inherit;
             this.ClientSize = new Size(882, 553);
+            this.Controls.Add(btnSaveAsync);
             this.Controls.Add(btnClearValues);
             this.Controls.Add(txtGuidValue);
             this.Controls.Add(label3);
@@ -332,5 +345,6 @@ namespace EntityFrameworkNet48TestApp
         private Label label3;
         private TextBox txtGuidValue;
         private Button btnClearValues;
+        private Button btnSaveAsync;
     }
 }

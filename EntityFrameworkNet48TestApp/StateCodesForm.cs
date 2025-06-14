@@ -2,7 +2,7 @@
 // System  : Entity Framework Test Application
 // File    : StateCodesForm.cs
 // Author  : Eric Woodruff
-// Updated : 12/16/2024
+// Updated : 06/14/2025
 //
 // This file contains the form used to edit state codes
 //
@@ -69,7 +69,7 @@ namespace EntityFrameworkNet48TestApp
         {
             // Save changes.  The state code keys are mutable so we'll handle updates manually by calling the
             // stored procedures ourself.  However, we can use the extension method to handle the details of
-            // getting the changes and set their disposition after the updates.
+            // getting the changes and setting their disposition after the updates.
             dc.SubmitChanges<StateCode>(
                 se =>
                 {
@@ -90,6 +90,49 @@ namespace EntityFrameworkNet48TestApp
                     dc.spStateCodeDelete((string)se.OriginalValues[nameof(StateCode.State)]);
                     return true;
                 });
+        }
+
+        /// <summary>
+        /// Save any pending changes asynchronously
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event arguments</param>
+        private async void btnSaveAsync_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                btnSave.Enabled = btnSaveAsync.Enabled = false;
+                Cursor.Current = Cursors.WaitCursor;
+
+                // Save changes.  The state code keys are mutable so we'll handle updates manually by calling the
+                // stored procedures ourself.  However, we can use the extension method to handle the details of
+                // getting the changes and setting their disposition after the updates.
+                await dc.SubmitChangesAsync<StateCode>(
+                    async se =>
+                    {
+                        // Insert a new state code
+                        await dc.spStateCodeAddUpdateAsync(null, se.Entity.State, se.Entity.StateDesc);
+                        return true;
+                    },
+                    async se =>
+                    {
+                        // Update an existing state code possibly changing the key
+                        await dc.spStateCodeAddUpdateAsync((string)se.OriginalValues[nameof(StateCode.State)],
+                            se.Entity.State, se.Entity.StateDesc);
+                        return true;
+                    },
+                    async se =>
+                    {
+                        // Delete an existing state code
+                        await dc.spStateCodeDeleteAsync((string)se.OriginalValues[nameof(StateCode.State)]);
+                        return true;
+                    });
+            }
+            finally
+            {
+                Cursor.Current = Cursors.Default;
+                btnSave.Enabled = btnSaveAsync.Enabled = true;
+            }
         }
 
         /// <summary>
