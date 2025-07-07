@@ -54,7 +54,7 @@ namespace EWSoftware.EntityFramework
             if(schemaName == null)
                 return storedProcedureName;
 
-            return String.Join(schemaName.SchemaName, ".", storedProcedureName);
+            return String.Concat(schemaName.SchemaName, ".", storedProcedureName);
         }
 
         /// <summary>
