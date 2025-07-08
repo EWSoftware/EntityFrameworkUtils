@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : Program.cs
 // Author  : Eric Woodruff
-// Updated : 12/30/2024
+// Updated : 07/08/2025
 //
 // This file contains a utility used to convert LINQ to SQL DBML file definitions to rough equivalents of their
 // Entity Framework counterparts.
@@ -135,7 +135,7 @@ namespace DbmlToEntityFrameworkConverter
             contextNamespace ??= root.Attribute("ContextNamespace")?.Value ?? "Database";
             entityNamespace ??= root.Attribute("EntityNamespace")?.Value ?? contextNamespace;
             contextClassName = root.Attribute("Class")!.Value;
-            accessModifier = root.Attribute("AccessModifier")?.Value ?? "public";
+            accessModifier = root.Attribute("AccessModifier")?.Value.ToLowerInvariant() ?? "public";
 
             // Get all table entities
             foreach(var tableType in root.Descendants(ns + "Type"))
