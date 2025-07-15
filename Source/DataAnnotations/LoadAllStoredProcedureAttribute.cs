@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : LoadAllStoredProcedureAttribute.cs
 // Author  : Eric Woodruff
-// Updated : 11/23/2024
+// Updated : 07/14/2025
 //
 // This file contains an attribute used to specify the stored procedure used to load all entities for the
 // associated type.
@@ -17,6 +17,8 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     /// <summary>
     /// This attribute is used to specify the stored procedure used to load all entities for the associated type
     /// </summary>
+    /// <remarks>If the stored procedure name matches the entity type name exactly or ends with the value of the
+    /// <see cref="DatabaseExtensions.ResultSetSuffix"/> property, the attribute can be omitted.</remarks>
     /// <example>
     /// <code language="cs">
     /// [LoadAllStoredProcedure("spStateCodes")]

@@ -30,7 +30,11 @@ they will not be tracked.</para>
 defined on the entity type.  The stored procedure name is determined by looking for the
 <codeInline>LoadAllStoredProcedureAttribute</codeInline> on the entity type.  The stored procedure should not
 have any parameters or only parameters with acceptable default values in order to return all rows.</para>
-				
+
+				<para>If the attribute is omitted from the entity type, the stored procedure name is assumed to be the
+same as the entity type name without the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.ResultSetSuffix</codeEntityReference>
+property value.</para>
+
 				<code language="cs">
 using var dataContext = new MyDbContext();
 
@@ -48,6 +52,10 @@ the <codeInline>LoadByKeyStoredProcedureAttribute</codeInline> on the entity typ
 have a parameter for each of the passed key values.  The parameter order typically matches the declared key order
 on the entity or the parameter order of the stored procedure but does not have to.</para>
 				
+				<para>If the attribute is omitted from the entity type, the stored procedure name is assumed to be the
+same as the entity type name without the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.ResultSetSuffix</codeEntityReference>
+property value.</para>
+
 				<code language="cs">
 using var dataContext = new MyDbContext();
 

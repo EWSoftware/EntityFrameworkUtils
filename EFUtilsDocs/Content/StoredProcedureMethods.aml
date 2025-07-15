@@ -33,7 +33,9 @@ the <codeInline>NeverTrackAttribute</codeInline>, they will not be tracked.</par
 			<content>
 				<para>This optional attribute is used to define the stored procedure name that will be called for the
 data context method.  If not specified on a data context stored procedure method, the name of the stored
-procedure is assumed to be the same as the data context method's name.</para>
+procedure is assumed to be the same as the data context method's name.  If the method name ends with the value of 
+the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix</codeEntityReference>
+property, the suffix will be removed from the method name to obtain the stored procedure name.</para>
 
 				<code language="csharp">
 // For these the stored procedure name is assumed to be the same as the method name	
@@ -173,10 +175,12 @@ in order to use them correctly.</para>
 
 				<list class="bullet">
 					<listItem>
-						<para>If you follow convention and suffix the method name with "Async", you will likely need to use
-the <codeInline>MethodStoredProcedureAttribute</codeInline> on it to specify the stored procedure name without
-the suffix.</para>
+						<para>If you follow convention and suffix the method name with "Async", you can still omit the
+<codeInline>MethodStoredProcedureAttribute</codeInline> as the suffix will be removed automatically when the method
+name ends with the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix</codeEntityReference>
+property value.  If you use a suffix different from the property value, you will need to specify the attribute.</para>
 					</listItem>
+
 					<listItem>
 						<para>The method information must be obtained using the stack trace to find the actual called method.
 This is required because the code within the stored procedure method is rewritten by the compiler and is
@@ -200,7 +204,8 @@ extension method can be used instead to achieve the same result.</para>
 				<para>Some examples are shown below.</para>
 
 				<code language="cs">
-// Execute a stored procedure and return its return value
+// Execute a stored procedure and return its return value.  We could omit the
+// attribute here since the name matches the method name with an "Async" suffix".
 [MethodStoredProcedure("spStockAdd")]
 public async int spStockAddAsync(string symbol, string assetDescription,
   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
@@ -211,9 +216,8 @@ public async int spStockAddAsync(string symbol, string assetDescription,
     // stored procedure name in the method attribute if the method name does not
     // match the stored procedure name.
     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        frame => frame.GetMethod()).FirstOrDefault(
-            item => item!.DeclaringType == GetType()) ??
-               throw new InvalidOperationException("Unable to get async method info"));
+        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
+            throw new InvalidOperationException("Unable to get async method info"));
 
     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol,
         assetDescription, currentBid, currentAsk, priceChangePercent]);

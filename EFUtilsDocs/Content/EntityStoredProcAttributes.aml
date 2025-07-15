@@ -102,6 +102,10 @@ takes no parameters.  The
 <codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.LoadAll``1(Microsoft.EntityFrameworkCore.DbContext)</codeEntityReference>
 extension method uses this attribute to determine the stored procedure it should call.  See the
 <codeInline>IgnoreAttribute</codeInline> section above for an example.</para>
+				
+				<para>If the attribute is omitted, the stored procedure name is assumed to be the same as the entity type
+name without the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.ResultSetSuffix</codeEntityReference>
+property value.</para>
 			</content>
 		</section>
 
@@ -114,7 +118,11 @@ using the values for the key properties defined on the type.  The
 extension method uses this attribute to determine the stored procedure it should call.  The <codeInline>PrimaryKey</codeInline>
 attribute on the type or the <codeInline>Key</codeInline> attributes on the properties are used to determine the
 key for the type.  There must be one stored procedure parameter for each key property on the type.</para>
-				
+
+				<para>If the attribute is omitted, the stored procedure name is assumed to be the same as the entity type
+name without the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.ResultSetSuffix</codeEntityReference>
+property value.</para>
+
 				<code language="csharp">
 [LoadByKeyStoredProcedure("spProductInfo"), InsertEntityStoredProcedure("spProductAddUpdate"),
   UpdateEntityStoredProcedure("spProductAddUpdate"), DeleteEntityStoredProcedure("spProductDelete")]

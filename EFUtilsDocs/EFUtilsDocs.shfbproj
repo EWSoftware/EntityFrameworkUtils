@@ -34,7 +34,7 @@
       <Argument Key="LogoPlacement" Value="left" />
       <Argument Key="LogoAlignment" Value="left" />
       <Argument Key="LogoUrl" Value="" />
-      <Argument Key="MaxVersionParts" Value="" />
+      <Argument Key="MaxVersionParts" Value="4" />
       <Argument Key="DefaultLanguage" Value="cs" />
       <Argument Key="IncludeEnumValues" Value="True" />
       <Argument Key="EnumMemberSortOrder" Value="Value" />
@@ -56,7 +56,7 @@
     <BuildAssemblerVerbosity>OnlyWarningsAndErrors</BuildAssemblerVerbosity>
     <SaveComponentCacheCapacity>100</SaveComponentCacheCapacity>
     <HelpTitle>EWSofware Entity Framework Utilities Library Documentation</HelpTitle>
-    <HelpFileVersion>2025.6.14.0</HelpFileVersion>
+    <HelpFileVersion>2025.7.14.0</HelpFileVersion>
     <NamingMethod>Guid</NamingMethod>
     <ContentPlacement>AboveNamespaces</ContentPlacement>
     <RootNamespaceContainer>False</RootNamespaceContainer>
@@ -169,6 +169,7 @@
     <None Include="Content\VersionHistory\v2025.2.15.0.aml" />
     <None Include="Content\VersionHistory\v2025.3.17.0.aml" />
     <None Include="Content\VersionHistory\v2025.6.14.0.aml" />
+    <None Include="Content\VersionHistory\v2025.7.14.0.aml" />
     <None Include="Content\VersionHistory\VersionHistory.aml" />
     <None Include="Content\Welcome.aml" />
   </ItemGroup>

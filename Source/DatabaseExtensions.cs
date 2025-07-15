@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 06/14/2025
+// Updated : 07/14/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -28,6 +28,25 @@ namespace EWSoftware.EntityFramework
     /// </summary>
     public static class DatabaseExtensions
     {
+        #region Properties
+        //=====================================================================
+
+        /// <summary>
+        /// This property is used to get or set the asynchronous method suffix that is automatically removed from
+        /// method stored procedure names.
+        /// </summary>
+        /// <value>The default suffix is "Async"</value>
+        public static string AsyncMethodSuffix { get; set; } = "Async";
+
+        /// <summary>
+        /// This property is used to get or set the result set entity type suffix that is automatically removed
+        /// from entity stored procedure names.
+        /// </summary>
+        /// <value>The default suffix is "Result"</value>
+        public static string ResultSetSuffix { get; set; } = "Result";
+
+        #endregion
+
         #region Helper methods
         //=====================================================================
 
@@ -59,7 +78,7 @@ namespace EWSoftware.EntityFramework
 
         /// <summary>
         /// Create a command instance to load entities of the given type using a stored procedure defined on the
-        /// entity type.
+        /// entity type or inferred from the type name.
         /// </summary>
         /// <typeparam name="TEntity">The entity type</typeparam>
         /// <param name="dataContext">The data context to use</param>
@@ -75,28 +94,33 @@ namespace EWSoftware.EntityFramework
           CreateLoadCommand<TEntity>(DbContext dataContext, object?[]? parameters)
         {
             Type entityType = typeof(TEntity);
-            string storedProcName;
+            string? storedProcName;
             string? parameterNamePrefix = null;
 
             if((parameters?.Length ?? 0) == 0)
-            {
-                var spNameAttr = entityType.GetCustomAttributes<LoadAllStoredProcedureAttribute>().FirstOrDefault() ??
-                    throw new NotSupportedException("The specified entity type is not decorated with the " +
-                        nameof(LoadAllStoredProcedureAttribute));
-
-                storedProcName = spNameAttr.StoredProcedureName;
-            }
+                storedProcName = entityType.GetCustomAttributes<LoadAllStoredProcedureAttribute>().FirstOrDefault()?.StoredProcedureName;
             else
             {
-                var spNameAttr = entityType.GetCustomAttributes<LoadByKeyStoredProcedureAttribute>().FirstOrDefault() ??
-                    throw new NotSupportedException("The specified entity type is not decorated with the " +
-                        nameof(LoadByKeyStoredProcedureAttribute));
+                var spNameAttr = entityType.GetCustomAttributes<LoadByKeyStoredProcedureAttribute>().FirstOrDefault();
 
-                storedProcName = spNameAttr.StoredProcedureName;
+                storedProcName = spNameAttr?.StoredProcedureName;
 
                 var namePrefixAttr = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
 
-                parameterNamePrefix = spNameAttr.ParameterNamePrefix ?? namePrefixAttr?.Prefix;
+                parameterNamePrefix = spNameAttr?.ParameterNamePrefix ?? namePrefixAttr?.Prefix;
+            }
+
+            if(String.IsNullOrWhiteSpace(storedProcName))
+            {
+                storedProcName = entityType.Name;
+
+#if !NETSTANDARD2_0
+                if(storedProcName.EndsWith(ResultSetSuffix, StringComparison.Ordinal))
+                    storedProcName = storedProcName[..^ResultSetSuffix.Length];
+#else
+                if(storedProcName.EndsWith(ResultSetSuffix, StringComparison.Ordinal))
+                    storedProcName = storedProcName.Substring(0, storedProcName.Length - ResultSetSuffix.Length);
+#endif
             }
 
             bool neverTrack = entityType.GetCustomAttributes<NeverTrackAttribute>().Any();
@@ -105,7 +129,7 @@ namespace EWSoftware.EntityFramework
             var command = connection.CreateCommand();
 
             command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName);
+            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
 
             if((parameters?.Length ?? 0) != 0)
             {
@@ -443,9 +467,23 @@ namespace EWSoftware.EntityFramework
             var spName = methodInfo.GetCustomAttributes<MethodStoredProcedureAttribute>().FirstOrDefault();
             var inOutParams = new List<(string ParameterName, int ParameterIndex)>();
             var contextParamPrefix = dataContext.GetType().GetCustomAttribute<ParameterNamePrefixAttribute>();
+            string? storedProcName = spName?.StoredProcedureName;
+
+            if(String.IsNullOrWhiteSpace(storedProcName))
+            {
+                storedProcName = methodInfo.Name;
+
+#if !NETSTANDARD2_0
+                if(storedProcName.EndsWith(AsyncMethodSuffix, StringComparison.Ordinal))
+                    storedProcName = storedProcName[..^AsyncMethodSuffix.Length];
+#else
+                if(storedProcName.EndsWith(AsyncMethodSuffix, StringComparison.Ordinal))
+                    storedProcName = storedProcName.Substring(0, storedProcName.Length - AsyncMethodSuffix.Length);
+#endif
+            }
 
             command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, spName?.StoredProcedureName ?? methodInfo.Name);
+            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
 
             if((parameters?.Length ?? 0) != 0)
             {
@@ -944,8 +982,10 @@ namespace EWSoftware.EntityFramework
         /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities</returns>
         /// <remarks>
         /// <para>The stored procedure name is determined by looking for the
-        /// <see cref="LoadAllStoredProcedureAttribute"/> on the entity type.  The stored procedure should not
-        /// have any parameters or only parameters with acceptable default values in order to return all rows.</para>
+        /// <see cref="LoadAllStoredProcedureAttribute"/> on the entity type.  If the attribute is not present,
+        /// the stored procedure name is assumed to be the same as the entity type name without the
+        /// <see cref="ResultSetSuffix"/> property value.  The stored procedure should not have any parameters or
+        /// only parameters with acceptable default values in order to return all rows.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while loading the entities.
         /// If change tracking is enabled on the data context, changes to the entities will be tracked.  If not
@@ -1020,8 +1060,10 @@ namespace EWSoftware.EntityFramework
         /// <returns>An enumerable list of the <typeparamref name="TEntity"/> entities</returns>
         /// <remarks>
         /// <para>The stored procedure name is determined by looking for the
-        /// <see cref="LoadAllStoredProcedureAttribute"/> on the entity type.  The stored procedure should not
-        /// have any parameters or only parameters with acceptable default values in order to return all rows.</para>
+        /// <see cref="LoadAllStoredProcedureAttribute"/> on the entity type.  If the attribute is not present,
+        /// the stored procedure name is assumed to be the same as the entity type name without the
+        /// <see cref="ResultSetSuffix"/> property value.  The stored procedure should not have any parameters or
+        /// only parameters with acceptable default values in order to return all rows.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while loading the entities.
         /// If change tracking is enabled on the data context, changes to the entities will be tracked.  If not
@@ -1106,8 +1148,10 @@ namespace EWSoftware.EntityFramework
         /// Typically, there will only be one entity but there could be others if a non-primary key is used.</returns>
         /// <remarks>
         /// <para>The stored procedure name is determined by looking for the
-        /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  The stored procedure
-        /// must have a parameter for each of the passed key values in <paramref name="parameters"/>.</para>
+        /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  If the attribute is not present,
+        /// the stored procedure name is assumed to be the same as the entity type name without the
+        /// <see cref="ResultSetSuffix"/> property value.  The stored procedure must have a parameter for each of
+        /// the passed key values in <paramref name="parameters"/>.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while loading the
         /// entities.  If change tracking is enabled on the data context, changes to the entities will be
@@ -1192,8 +1236,10 @@ namespace EWSoftware.EntityFramework
         /// Typically, there will only be one entity but there could be others if a non-primary key is used.</returns>
         /// <remarks>
         /// <para>The stored procedure name is determined by looking for the
-        /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  The stored procedure
-        /// must have a parameter for each of the passed key values in <paramref name="parameters"/>.</para>
+        /// <see cref="LoadByKeyStoredProcedureAttribute"/> on the entity type.  If the attribute is not present,
+        /// the stored procedure name is assumed to be the same as the entity type name without the
+        /// <see cref="ResultSetSuffix"/> property value.  The stored procedure must have a parameter for each of
+        /// the passed key values in <paramref name="parameters"/>.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while loading the
         /// entities.  If change tracking is enabled on the data context, changes to the entities will be
@@ -2054,14 +2100,17 @@ namespace EWSoftware.EntityFramework
         /// stored procedure.</returns>
         /// <remarks><para>The stored procedure name is determined by looking for the
         /// <see cref="MethodStoredProcedureAttribute"/> on the calling data context method.  If not specified,
-        /// the stored procedure name is assumed to be the same as the calling method's name.</para>
+        /// the stored procedure name is assumed to be the same as the calling method's name.  If the method name
+        /// ends with the <see cref="AsyncMethodSuffix"/> value, the indicated suffix is removed from the method
+        /// name to get the stored procedure name.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while executing the stored
         /// procedure.</para></remarks>
         /// <example>
         /// <code language="cs">
-        /// // Execute a stored procedure and return its return value
-        /// [MethodStoredProcedure("spStockAdd")]
+        /// // The stored procedure names are inferred from the method names without the "Async" suffix.
+        /// 
+        /// // Execute a stored procedure and return its return value asynchronously
         /// public async int spStockAddAsync(string symbol, string assetDescription,
         ///   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
         /// {
@@ -2082,7 +2131,6 @@ namespace EWSoftware.EntityFramework
         /// }
         /// 
         /// // Execute a stored procedure and return the number of rows affected
-        /// [MethodStoredProcedure("spStockDelete")]
         /// public async int spStockDeleteAsync(string symbol)
         /// {
         ///     // When called asynchronously, the parameters must be passed as an array
@@ -2101,7 +2149,6 @@ namespace EWSoftware.EntityFramework
         /// 
         /// // Execute a stored procedure and return the output parameters via the ref parameters on
         /// // the method.  We can also return the stored procedure's return value or rows affected.
-        /// [MethodStoredProcedure("spCheckForEmployeeSchedule")]
         /// public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
         ///   ref bool bidGroupScheduled, ref bool entityScheduled)
         /// {
@@ -2291,15 +2338,17 @@ namespace EWSoftware.EntityFramework
         /// <returns>An enumerable list of the given entity type.</returns>
         /// <remarks><para>The stored procedure name is determined by looking for the
         /// <see cref="MethodStoredProcedureAttribute"/> on the calling data context method.  If not specified,
-        /// the stored procedure name is assumed to be the same as the calling method's name.</para>
+        /// the stored procedure name is assumed to be the same as the calling method's name.  If the method name
+        /// ends with the <see cref="AsyncMethodSuffix"/> value, the indicated suffix is removed from the method
+        /// name to get the stored procedure name.</para>
         /// 
         /// <para>If the connection is not in an open state, it is opened temporarily while loading the entities.
         /// If change tracking is enabled on the data context, changes to the entities will be tracked.  If not
         /// or the entity is marked with the <see cref="NeverTrackAttribute"/>, they will not be tracked.</para></remarks>
         /// <example>
         /// <code language="cs">
-        /// // Execute a search stored procedure and return its result set
-        /// [MethodStoredProcedure("spTransactionList")]
+        /// // Execute a search stored procedure and return its result set.  The stored procedure name
+        /// // is inferred from the method name without the "Async" suffix.
         /// public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
         ///   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
         /// {

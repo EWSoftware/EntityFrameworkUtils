@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : LoadByKeyStoredProcedureAttribute.cs
 // Author  : Eric Woodruff
-// Updated : 11/28/2024
+// Updated : 07/14/2025
 //
 // This file contains an attribute used to specify the stored procedure used to load one or more entities for
 // the associated type that have a specified key value.
@@ -18,9 +18,13 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     /// This attribute is used to specify the stored procedure used to load one or more entities for the
     /// associated type that have a specified key value.
     /// </summary>
-    /// <remarks>The stored procedure must have one or more parameters representing the key columns on the
+    /// <remarks><para>The stored procedure must have one or more parameters representing the key columns on the
     /// entity type identified with a <c>PrimaryKeyAttribute</c> or one or more properties with a
-    /// <c>KeyAttribute</c> or defined by the data context.  All parameters are input only.</remarks>
+    /// <c>KeyAttribute</c> or defined by the data context.  All parameters are input only.</para>
+    /// 
+    /// <para>If the stored procedure name matches the entity type name exactly or ends with the value of the
+    /// <see cref="DatabaseExtensions.ResultSetSuffix"/> property, the attribute can be omitted.</para>
+    /// </remarks>
     /// <example>
     /// <code language="csharp">
     /// [LoadByKeyStoredProcedure("spProductInfo"), InsertEntityStoredProcedure("spProductAddUpdate"),

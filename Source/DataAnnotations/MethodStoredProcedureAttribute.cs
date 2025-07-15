@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : MethodStoredProcedureAttribute.cs
 // Author  : Eric Woodruff
-// Updated : 11/24/2024
+// Updated : 07/14/2025
 //
 // This file contains an attribute used to specify the stored procedure executed by a method on a data context
 //
@@ -17,7 +17,9 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     /// This attribute is used to specify the stored procedure executed by a method on a data context
     /// </summary>
     /// <remarks>This attribute is optional.  If not specified on a data context stored procedure method, the
-    /// name of the stored procedure is assumed to be the same as the data context method's name.</remarks>
+    /// name of the stored procedure is assumed to be the same as the data context method's name.  If the method
+    /// name ends with the value of the <see cref="DatabaseExtensions.AsyncMethodSuffix"/> property, the
+    /// suffix will be removed from the method name to obtain the stored procedure name.</remarks>
     /// <example>
     /// <code language="cs">
     /// // Use the attribute to specify the stored procedure name when it differs from the method name
