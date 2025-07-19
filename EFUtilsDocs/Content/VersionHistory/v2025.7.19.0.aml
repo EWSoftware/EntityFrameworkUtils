@@ -10,6 +10,10 @@
 
 				<list class="bullet">
 					<listItem>
+						<para>Fixed handling of decimal parameters so that their values are not truncated.</para>
+					</listItem>
+
+					<listItem>
 						<para>Fixed adding the schema name to the stored procedure names.</para>
 					</listItem>
 

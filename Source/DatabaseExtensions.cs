@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 07/14/2025
+// Updated : 07/19/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -692,7 +692,7 @@ namespace EWSoftware.EntityFramework
                     break;
 
                 case TypeCode.Decimal:
-                    parameter.SqlDbType = SqlDbType.Money;
+                    parameter.SqlDbType = SqlDbType.Decimal;
                     break;
 
                 case TypeCode.Double:

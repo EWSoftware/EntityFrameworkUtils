@@ -46,6 +46,12 @@ namespace EntityFrameworkNet8TestApp.Database
             set => this.SetWithNotify(value, ref field);
         }
 
+        public decimal DecimalValue
+        {
+            get;
+            set => this.SetWithNotify(value, ref field);
+        }
+
         /// <summary>
         /// Entity Framework does not support XML properties in entities so we need to ignore it.  The stored
         /// procedure extension methods do support them so we don't need an additional property to handle it.

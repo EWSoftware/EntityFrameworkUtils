@@ -30,17 +30,10 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             btnClose = new Button();
             btnSave = new Button();
             dgvDemoData = new DataGridView();
-            listKeyDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-            labelDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-            textValueDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-            dateValueDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-            boolValueDataGridViewCheckBoxColumn = new DataGridViewCheckBoxColumn();
-            lastModifiedDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-            btncDelete = new DataGridViewButtonColumn();
             bsDemoData = new BindingSource(components);
             btnSetXml = new Button();
             btnSetGuid = new Button();
@@ -53,6 +46,14 @@
             txtGuidValue = new TextBox();
             btnClearValues = new Button();
             btnSaveAsync = new Button();
+            listKeyDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            labelDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            textValueDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            dateValueDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            boolValueDataGridViewCheckBoxColumn = new DataGridViewCheckBoxColumn();
+            DecimalValue = new DataGridViewTextBoxColumn();
+            lastModifiedDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            btncDelete = new DataGridViewButtonColumn();
             ((System.ComponentModel.ISupportInitialize)dgvDemoData).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bsDemoData).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pbImage).BeginInit();
@@ -62,7 +63,7 @@
             // 
             btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClose.DialogResult = DialogResult.Cancel;
-            btnClose.Location = new Point(782, 509);
+            btnClose.Location = new Point(882, 509);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(88, 32);
             btnClose.TabIndex = 12;
@@ -86,15 +87,135 @@
             dgvDemoData.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvDemoData.AutoGenerateColumns = false;
             dgvDemoData.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvDemoData.Columns.AddRange(new DataGridViewColumn[] { listKeyDataGridViewTextBoxColumn, labelDataGridViewTextBoxColumn, textValueDataGridViewTextBoxColumn, dateValueDataGridViewTextBoxColumn, boolValueDataGridViewCheckBoxColumn, lastModifiedDataGridViewTextBoxColumn, btncDelete });
+            dgvDemoData.Columns.AddRange(new DataGridViewColumn[] { listKeyDataGridViewTextBoxColumn, labelDataGridViewTextBoxColumn, textValueDataGridViewTextBoxColumn, dateValueDataGridViewTextBoxColumn, boolValueDataGridViewCheckBoxColumn, DecimalValue, lastModifiedDataGridViewTextBoxColumn, btncDelete });
             dgvDemoData.DataSource = bsDemoData;
             dgvDemoData.Location = new Point(12, 12);
             dgvDemoData.Name = "dgvDemoData";
             dgvDemoData.RowHeadersWidth = 51;
             dgvDemoData.RowTemplate.Height = 32;
-            dgvDemoData.Size = new Size(858, 341);
+            dgvDemoData.Size = new Size(958, 341);
             dgvDemoData.TabIndex = 0;
             dgvDemoData.CellContentClick += this.dgvDemoData_CellContentClick;
+            // 
+            // bsDemoData
+            // 
+            bsDemoData.DataSource = typeof(Database.DemoTable);
+            bsDemoData.CurrentChanged += this.bsDemoData_CurrentChanged;
+            // 
+            // btnSetXml
+            // 
+            btnSetXml.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetXml.Location = new Point(305, 509);
+            btnSetXml.Name = "btnSetXml";
+            btnSetXml.Size = new Size(88, 32);
+            btnSetXml.TabIndex = 8;
+            btnSetXml.Text = "Set &XML";
+            btnSetXml.UseVisualStyleBackColor = true;
+            btnSetXml.Click += this.btnSetXml_Click;
+            // 
+            // btnSetGuid
+            // 
+            btnSetGuid.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetGuid.Location = new Point(399, 509);
+            btnSetGuid.Name = "btnSetGuid";
+            btnSetGuid.Size = new Size(88, 32);
+            btnSetGuid.TabIndex = 9;
+            btnSetGuid.Text = "Set &GUID";
+            btnSetGuid.UseVisualStyleBackColor = true;
+            btnSetGuid.Click += this.btnSetGuid_Click;
+            // 
+            // pbImage
+            // 
+            pbImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            pbImage.BorderStyle = BorderStyle.FixedSingle;
+            pbImage.Location = new Point(870, 359);
+            pbImage.Name = "pbImage";
+            pbImage.Size = new Size(100, 100);
+            pbImage.TabIndex = 7;
+            pbImage.TabStop = false;
+            // 
+            // btnSetImage
+            // 
+            btnSetImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSetImage.Location = new Point(493, 509);
+            btnSetImage.Name = "btnSetImage";
+            btnSetImage.Size = new Size(88, 32);
+            btnSetImage.TabIndex = 10;
+            btnSetImage.Text = "Set &Image";
+            btnSetImage.UseVisualStyleBackColor = true;
+            btnSetImage.Click += this.btnSetImage_Click;
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            label1.Location = new Point(12, 359);
+            label1.Name = "label1";
+            label1.Size = new Size(111, 25);
+            label1.TabIndex = 1;
+            label1.Text = "XML Value";
+            label1.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // txtXmlValue
+            // 
+            txtXmlValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtXmlValue.Location = new Point(129, 359);
+            txtXmlValue.Multiline = true;
+            txtXmlValue.Name = "txtXmlValue";
+            txtXmlValue.ReadOnly = true;
+            txtXmlValue.ScrollBars = ScrollBars.Both;
+            txtXmlValue.Size = new Size(619, 100);
+            txtXmlValue.TabIndex = 2;
+            // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            label2.Location = new Point(753, 360);
+            label2.Name = "label2";
+            label2.Size = new Size(111, 25);
+            label2.TabIndex = 3;
+            label2.Text = "Image Value";
+            label2.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // label3
+            // 
+            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            label3.Location = new Point(12, 466);
+            label3.Name = "label3";
+            label3.Size = new Size(111, 25);
+            label3.TabIndex = 4;
+            label3.Text = "GUID Value";
+            label3.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // txtGuidValue
+            // 
+            txtGuidValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            txtGuidValue.Location = new Point(129, 465);
+            txtGuidValue.Name = "txtGuidValue";
+            txtGuidValue.ReadOnly = true;
+            txtGuidValue.Size = new Size(619, 27);
+            txtGuidValue.TabIndex = 5;
+            // 
+            // btnClearValues
+            // 
+            btnClearValues.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnClearValues.Location = new Point(587, 509);
+            btnClearValues.Name = "btnClearValues";
+            btnClearValues.Size = new Size(120, 32);
+            btnClearValues.TabIndex = 11;
+            btnClearValues.Text = "Clear &Values";
+            btnClearValues.UseVisualStyleBackColor = true;
+            btnClearValues.Click += this.btnClearValues_Click;
+            // 
+            // btnSaveAsync
+            // 
+            btnSaveAsync.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnSaveAsync.Location = new Point(106, 509);
+            btnSaveAsync.Name = "btnSaveAsync";
+            btnSaveAsync.Size = new Size(120, 32);
+            btnSaveAsync.TabIndex = 7;
+            btnSaveAsync.Text = "Save &Async";
+            btnSaveAsync.UseVisualStyleBackColor = true;
+            btnSaveAsync.Click += this.btnSaveAsync_Click;
             // 
             // listKeyDataGridViewTextBoxColumn
             // 
@@ -144,6 +265,14 @@
             boolValueDataGridViewCheckBoxColumn.Name = "boolValueDataGridViewCheckBoxColumn";
             boolValueDataGridViewCheckBoxColumn.Width = 90;
             // 
+            // DecimalValue
+            // 
+            DecimalValue.DataPropertyName = "DecimalValue";
+            DecimalValue.HeaderText = "DecimalValue";
+            DecimalValue.MinimumWidth = 6;
+            DecimalValue.Name = "DecimalValue";
+            DecimalValue.Width = 125;
+            // 
             // lastModifiedDataGridViewTextBoxColumn
             // 
             lastModifiedDataGridViewTextBoxColumn.DataPropertyName = "LastModified";
@@ -156,13 +285,13 @@
             // 
             // btncDelete
             // 
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = SystemColors.Control;
-            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle2.Padding = new Padding(2);
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Control;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.ControlText;
-            btncDelete.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.Padding = new Padding(2);
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Control;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.ControlText;
+            btncDelete.DefaultCellStyle = dataGridViewCellStyle1;
             btncDelete.HeaderText = "";
             btncDelete.MinimumWidth = 6;
             btncDelete.Name = "btncDelete";
@@ -171,130 +300,10 @@
             btncDelete.UseColumnTextForButtonValue = true;
             btncDelete.Width = 80;
             // 
-            // bsDemoData
-            // 
-            bsDemoData.DataSource = typeof(Database.DemoTable);
-            bsDemoData.CurrentChanged += this.bsDemoData_CurrentChanged;
-            // 
-            // btnSetXml
-            // 
-            btnSetXml.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetXml.Location = new Point(305, 509);
-            btnSetXml.Name = "btnSetXml";
-            btnSetXml.Size = new Size(88, 32);
-            btnSetXml.TabIndex = 8;
-            btnSetXml.Text = "Set &XML";
-            btnSetXml.UseVisualStyleBackColor = true;
-            btnSetXml.Click += this.btnSetXml_Click;
-            // 
-            // btnSetGuid
-            // 
-            btnSetGuid.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetGuid.Location = new Point(399, 509);
-            btnSetGuid.Name = "btnSetGuid";
-            btnSetGuid.Size = new Size(88, 32);
-            btnSetGuid.TabIndex = 9;
-            btnSetGuid.Text = "Set &GUID";
-            btnSetGuid.UseVisualStyleBackColor = true;
-            btnSetGuid.Click += this.btnSetGuid_Click;
-            // 
-            // pbImage
-            // 
-            pbImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            pbImage.BorderStyle = BorderStyle.FixedSingle;
-            pbImage.Location = new Point(770, 359);
-            pbImage.Name = "pbImage";
-            pbImage.Size = new Size(100, 100);
-            pbImage.TabIndex = 7;
-            pbImage.TabStop = false;
-            // 
-            // btnSetImage
-            // 
-            btnSetImage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSetImage.Location = new Point(493, 509);
-            btnSetImage.Name = "btnSetImage";
-            btnSetImage.Size = new Size(88, 32);
-            btnSetImage.TabIndex = 10;
-            btnSetImage.Text = "Set &Image";
-            btnSetImage.UseVisualStyleBackColor = true;
-            btnSetImage.Click += this.btnSetImage_Click;
-            // 
-            // label1
-            // 
-            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label1.Location = new Point(12, 359);
-            label1.Name = "label1";
-            label1.Size = new Size(111, 25);
-            label1.TabIndex = 1;
-            label1.Text = "XML Value";
-            label1.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // txtXmlValue
-            // 
-            txtXmlValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtXmlValue.Location = new Point(129, 359);
-            txtXmlValue.Multiline = true;
-            txtXmlValue.Name = "txtXmlValue";
-            txtXmlValue.ReadOnly = true;
-            txtXmlValue.ScrollBars = ScrollBars.Both;
-            txtXmlValue.Size = new Size(519, 100);
-            txtXmlValue.TabIndex = 2;
-            // 
-            // label2
-            // 
-            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            label2.Location = new Point(653, 360);
-            label2.Name = "label2";
-            label2.Size = new Size(111, 25);
-            label2.TabIndex = 3;
-            label2.Text = "Image Value";
-            label2.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label3
-            // 
-            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label3.Location = new Point(12, 466);
-            label3.Name = "label3";
-            label3.Size = new Size(111, 25);
-            label3.TabIndex = 4;
-            label3.Text = "GUID Value";
-            label3.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // txtGuidValue
-            // 
-            txtGuidValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            txtGuidValue.Location = new Point(129, 465);
-            txtGuidValue.Name = "txtGuidValue";
-            txtGuidValue.ReadOnly = true;
-            txtGuidValue.Size = new Size(519, 27);
-            txtGuidValue.TabIndex = 5;
-            // 
-            // btnClearValues
-            // 
-            btnClearValues.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnClearValues.Location = new Point(587, 509);
-            btnClearValues.Name = "btnClearValues";
-            btnClearValues.Size = new Size(120, 32);
-            btnClearValues.TabIndex = 11;
-            btnClearValues.Text = "Clear &Values";
-            btnClearValues.UseVisualStyleBackColor = true;
-            btnClearValues.Click += this.btnClearValues_Click;
-            // 
-            // btnSaveAsync
-            // 
-            btnSaveAsync.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnSaveAsync.Location = new Point(106, 509);
-            btnSaveAsync.Name = "btnSaveAsync";
-            btnSaveAsync.Size = new Size(120, 32);
-            btnSaveAsync.TabIndex = 7;
-            btnSaveAsync.Text = "Save &Async";
-            btnSaveAsync.UseVisualStyleBackColor = true;
-            btnSaveAsync.Click += this.btnSaveAsync_Click;
-            // 
             // DemoDataTableForm
             // 
             this.AutoScaleMode = AutoScaleMode.Inherit;
-            this.ClientSize = new Size(882, 553);
+            this.ClientSize = new Size(982, 553);
             this.Controls.Add(btnSaveAsync);
             this.Controls.Add(btnClearValues);
             this.Controls.Add(txtGuidValue);
@@ -325,13 +334,6 @@
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.DataGridView dgvDemoData;
         private System.Windows.Forms.BindingSource bsDemoData;
-        private DataGridViewTextBoxColumn listKeyDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn labelDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn textValueDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn dateValueDataGridViewTextBoxColumn;
-        private DataGridViewCheckBoxColumn boolValueDataGridViewCheckBoxColumn;
-        private DataGridViewTextBoxColumn lastModifiedDataGridViewTextBoxColumn;
-        private DataGridViewButtonColumn btncDelete;
         private Button btnSetXml;
         private Button btnSetGuid;
         private PictureBox pbImage;
@@ -343,5 +345,13 @@
         private TextBox txtGuidValue;
         private Button btnClearValues;
         private Button btnSaveAsync;
+        private DataGridViewTextBoxColumn listKeyDataGridViewTextBoxColumn;
+        private DataGridViewTextBoxColumn labelDataGridViewTextBoxColumn;
+        private DataGridViewTextBoxColumn textValueDataGridViewTextBoxColumn;
+        private DataGridViewTextBoxColumn dateValueDataGridViewTextBoxColumn;
+        private DataGridViewCheckBoxColumn boolValueDataGridViewCheckBoxColumn;
+        private DataGridViewTextBoxColumn DecimalValue;
+        private DataGridViewTextBoxColumn lastModifiedDataGridViewTextBoxColumn;
+        private DataGridViewButtonColumn btncDelete;
     }
 }

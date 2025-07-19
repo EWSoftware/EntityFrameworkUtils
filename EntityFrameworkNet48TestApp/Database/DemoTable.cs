@@ -56,6 +56,14 @@ namespace EntityFrameworkNet48TestApp.Database
             set => this.SetWithNotify(value, ref _boolValue);
         }
 
+        private decimal _decimalValue;
+
+        public decimal DecimalValue
+        {
+            get => _decimalValue;
+            set => this.SetWithNotify(value, ref _decimalValue);
+        }
+
         private System.Xml.Linq.XElement _xmlValue;
 
         /// <summary>
