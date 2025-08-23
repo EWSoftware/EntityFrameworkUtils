@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : ChangeTrackingEntity.cs
 // Author  : Eric Woodruff
-// Updated : 11/22/2024
+// Updated : 08/15/2025
 //
 // This file contains the class used as a base class for entity types that require change tracking notifications
 //
@@ -41,7 +41,7 @@ namespace EWSoftware.EntityFramework
         /// name if not specified</param>
         protected void SetWithNotify<T>(T value, ref T field, [CallerMemberName] string propertyName = "")
         {
-            if(!Equals(field, value))
+            if(!EqualityComparer<T>.Default.Equals(field, value))
             {
                 PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
                 field = value;

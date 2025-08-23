@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:db="using:AvaloniaTestApp.Database"
+  xmlns:vm="using:AvaloniaTestApp.ViewModels"
+  mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
+  x:Class="AvaloniaTestApp.DemoDataTableWindow"  x:DataType="vm:DemoDataTableViewModel"
+  Icon="/Assets/avalonia-logo.ico" Width="1000" Height="600" MinWidth="750" MinHeight="300"
+  Title="Edit Demo Data" WindowStartupLocation="CenterOwner" Closed="DemoDataTableWindow_Closed">
+
+  <Design.DataContext>
+    <vm:DemoDataTableViewModel/>
+  </Design.DataContext>
+
+  <Grid Margin="10" RowDefinitions="*, Auto, Auto">
+    <DataGrid Grid.Row="0" Name="dgDemoTable" ItemsSource="{Binding DemoTableRows}" AutoGenerateColumns="False"
+      CanUserResizeColumns="True" HeadersVisibility="All" GridLinesVisibility="All"
+      SelectedItem="{Binding SelectedItem}">
+      <Interaction.Behaviors>
+        <AutoFocusBehavior />
+      </Interaction.Behaviors>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="List Key" Binding="{Binding ListKey}" />
+        <DataGridTextColumn Header="Label" Binding="{Binding Label}" Width="200" />
+        <DataGridTextColumn Header="Text Value" Binding="{Binding TextValue}" Width="200" />
+        <DataGridTextColumn Header="Date Value" Binding="{Binding DateValue}" Width="140" />
+        <DataGridCheckBoxColumn Header="Boolean Value" Binding="{Binding BoolValue}" Width="90" />
+        <DataGridTextColumn Header="Decimal Value" Binding="{Binding DecimalValue}" Width="140" />
+        <DataGridTemplateColumn Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button Content="Delete" Margin="5"
+                Command="{Binding #dgDemoTable((vm:DemoDataTableViewModel)DataContext).DeleteRowCommand}"
+                CommandParameter="{Binding .}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="5">
+      <Grid Grid.Column="0" ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
+        <Label Grid.Row="0" Grid.Column="0" Margin="5,5" Content="XML Value" />
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" Text="{Binding SelectedItem.XmlValue, Mode=OneWay}"
+          MaxLines="3" ScrollViewer.HorizontalScrollBarVisibility="Auto" IsReadOnly="True" />
+        <Label Grid.Row="1" Grid.Column="0" Margin="5,5"  Content="GUID Value" />
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="0,5" Text="{Binding SelectedItem.GuidValue, Mode=OneWay}"
+          IsReadOnly="True" />
+      </Grid>
+      <Grid Grid.Column="1" ColumnDefinitions="Auto,*">
+        <Label Grid.Column="0" Margin="5,5" Content="Image Value" />
+        <Border Grid.Column="1" Margin="5,5"  BorderThickness="1" BorderBrush="Black">
+          <Image Width="100" Height="100" Source="{Binding SelectedItemImage}" />
+        </Border>
+      </Grid>
+    </Grid>
+    <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto">
+      <StackPanel Grid.Column="0" Orientation="Horizontal">
+        <Button Name="btnAdd" Content="_Add" Margin="0,10,0,0" MinWidth="80" Click="btnAdd_Click"/>
+        <Button Content="_Save" Margin="10,10,0,0" MinWidth="80" Command="{Binding SaveCommand}" />
+        <Button Content="Save Asy_nc" Margin="10,10,0,0" MinWidth="80"
+          Command="{Binding SaveAsynchronousCommand}" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Content="Set _XML" Margin="0,10,0,0" MinWidth="80" Command="{Binding SetXmlValueCommand}" />
+        <Button Content="Set _GUID" Margin="10,10,0,0" MinWidth="80" Command="{Binding SetGuidValueCommand}" />
+        <Button Content="Set _Image" Margin="10,10,0,0" MinWidth="80" Command="{Binding SetImageValueCommand}" />
+        <Button Content="Clear _Values" Margin="10,10,0,0" MinWidth="80" Command="{Binding ClearValuesCommand}" />
+      </StackPanel>
+      <Button Grid.Column="2" Content="Close" IsCancel="True" Margin="0,10,0,0" HorizontalAlignment="Right"
+        MinWidth="80" Click="btnClose_Click" />
+    </Grid>
+  </Grid>
+</Window>

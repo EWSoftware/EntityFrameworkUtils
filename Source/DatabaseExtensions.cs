@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 07/19/2025
+// Updated : 08/17/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -951,7 +951,7 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static void CheckAndUpdateKeys<TEntity>(this DbContext dataContext,
           Func<TEntity, EntityState, bool> nullKeyCheck, Action<TEntity, EntityState> updateKeys)
-          where TEntity : ChangeTrackingEntity
+          where TEntity : class, INotifyPropertyChanged
         {
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
@@ -1573,7 +1573,7 @@ namespace EWSoftware.EntityFramework
                     closeConnection = true;
                 }
 
-                rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(true);
+                rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -1616,7 +1616,8 @@ namespace EWSoftware.EntityFramework
         ///     dataContext.SubmitChanges&lt;Account&gt;();
         /// </code>
         /// </example>
-        public static void SubmitChanges<TEntity>(this DbContext dataContext) where TEntity : ChangeTrackingEntity
+        public static void SubmitChanges<TEntity>(this DbContext dataContext)
+          where TEntity : class, INotifyPropertyChanged
         {
             // Any changes made here should also be made to SubmitChangesAsync(dataContext) if necessary
 #if !NETSTANDARD2_0
@@ -1687,7 +1688,7 @@ namespace EWSoftware.EntityFramework
         /// </code>
         /// </example>
         public static async Task SubmitChangesAsync<TEntity>(this DbContext dataContext,
-          CancellationToken cancellationToken = default) where TEntity : ChangeTrackingEntity
+          CancellationToken cancellationToken = default) where TEntity : class, INotifyPropertyChanged
         {
             // Any changes made here should also be made to SubmitChanges(dataContext) if necessary
 #if !NETSTANDARD2_0
@@ -1790,7 +1791,7 @@ namespace EWSoftware.EntityFramework
         /// </example>
         public static void SubmitChanges<TEntity>(this DbContext dataContext,
           Func<EntityEntry<TEntity>, bool>? insert, Func<EntityEntry<TEntity>, bool>? update,
-          Func<EntityEntry<TEntity>, bool>? delete) where TEntity : ChangeTrackingEntity
+          Func<EntityEntry<TEntity>, bool>? delete) where TEntity : class, INotifyPropertyChanged
         {
             // Any changes made here should also be made to SubmitChangesAsync(dataContext, insert, ...) if necessary
 #if !NETSTANDARD2_0
@@ -1907,7 +1908,7 @@ namespace EWSoftware.EntityFramework
           Func<EntityEntry<TEntity>, Task<bool>>? insert,
           Func<EntityEntry<TEntity>, Task<bool>>? update,
           Func<EntityEntry<TEntity>, Task<bool>>? delete,
-          CancellationToken cancellationToken = default) where TEntity : ChangeTrackingEntity
+          CancellationToken cancellationToken = default) where TEntity : class, INotifyPropertyChanged
         {
             // Any changes made here should also be made to SubmitChanges(dataContext, insert, ...) if necessary
 #if !NETSTANDARD2_0
@@ -2472,7 +2473,7 @@ namespace EWSoftware.EntityFramework
         /// </code>
         /// </example>
         public static TrackingBindingList<TEntity> ToTrackingBindingList<TEntity>(this IEnumerable<TEntity> entities,
-          DbContext dataContext) where TEntity : ChangeTrackingEntity
+          DbContext dataContext) where TEntity : class, INotifyPropertyChanged
         {
             return new TrackingBindingList<TEntity>(dataContext, [.. entities]);
         }
@@ -2497,7 +2498,7 @@ namespace EWSoftware.EntityFramework
         /// </code>
         /// </example>
         public static TrackingObservableCollection<TEntity> ToTrackingCollection<TEntity>(this IEnumerable<TEntity> entities,
-          DbContext dataContext) where TEntity : ChangeTrackingEntity
+          DbContext dataContext) where TEntity : class, INotifyPropertyChanged
         {
             return new TrackingObservableCollection<TEntity>(dataContext, entities);
         }

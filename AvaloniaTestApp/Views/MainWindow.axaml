@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:vm="using:AvaloniaTestApp.ViewModels"
+  mc:Ignorable="d" x:Class="AvaloniaTestApp.Views.MainWindow"
+  Icon="/Assets/avalonia-logo.ico" Title="AvaloniaTestApp" WindowStartupLocation="CenterScreen"
+  Width="500" SizeToContent="Height" CanResize="False">
+
+  <StackPanel Spacing="20" Margin="20">
+    <Button Content="Edit _State Codes" Click="btnEditStateCodes_Click">
+      <Interaction.Behaviors>
+        <AutoFocusBehavior />
+      </Interaction.Behaviors>
+    </Button>
+    <Button Content="Edit _Demo Data Table"  Click="btnDemoDataTable_Click" />
+    <Button Content="_Product Search"  Click="btnProductSearch_Click" />
+    <Button Content="_Test Async Methods"  Click="btnTestAsyncMethods_Click" />
+  </StackPanel>
+</Window>

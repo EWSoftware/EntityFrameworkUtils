@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : Program.cs
 // Author  : Eric Woodruff
-// Updated : 07/08/2025
+// Updated : 08/16/2025
 //
 // This file contains a utility used to convert LINQ to SQL DBML file definitions to rough equivalents of their
 // Entity Framework counterparts.
@@ -33,7 +33,7 @@ namespace DbmlToEntityFrameworkConverter
             entityNamespace = null!, contextClassName = null!, accessModifier = null!, dbmlFilename = null!,
             nullForgiving = String.Empty;
         private static string? parameterPrefix, settingsObjectName, settingsPropertyName, connectionString;
-        private static bool useFieldKeyword, nullableRefTypes, ef7orLater;
+        private static bool useFieldKeyword, nullableRefTypes, ef7orLater, useCommunityMvvm;
 
         #endregion
 
@@ -48,27 +48,32 @@ namespace DbmlToEntityFrameworkConverter
         {
             if(args.Length < 2)
             {
-                Console.WriteLine("DbmlToEntityFrameworkConverter.exe PathToDbmlFile OutputFolder " +
-                    "[/contextNamespace:Context.Namespace] [/entityNamespace:Entity.Namespace] " +
-                    "[/schema:SchemaName] [/paramPrefix:ParameterPrefix] [/useFieldKeyword] [/nullableRefTypes] " +
-                    "[/ef7orLater]");
-                Console.WriteLine("PathToDbmlFile is required and specifies the DBML file to convert.");
-                Console.WriteLine("OutputFolder is required and specifies where the generated files will be stored.");
+                Console.WriteLine(@"DbmlToEntityFrameworkConverter.exe PathToDbmlFile OutputFolder 
+        [/contextNamespace:Context.Namespace] [/entityNamespace:Entity.Namespace]
+        [/schema:SchemaName] [/paramPrefix:ParameterPrefix] [/useFieldKeyword]
+        [/useCommunityMvvm] [/nullableRefTypes] [/ef7orLater]
+");
+                Console.WriteLine("PathToDbmlFile is required and specifies the DBML file to convert.\r\n");
+                Console.WriteLine("OutputFolder is required and specifies where the generated files will be stored.\r\n");
                 Console.WriteLine("/contextNamespace:Context.Namespace is optional.  If not specified, the " +
-                    "context namespace from the DBML file is used if specified or 'Database' if not.");
+                    "context namespace from the DBML file is used if specified or 'Database' if not.\r\n");
                 Console.WriteLine("/entityNamespace:Entity.Namespace is optional.  If not specified, the " +
-                    "entity namespace from the DBML file is used if specified or the context namespace if not.");
+                    "entity namespace from the DBML file is used if specified or the context namespace if not.\r\n");
                 Console.WriteLine("/schema:SchemaName is optional.  If not specified, 'dbo' is used as the " +
-                    "default schema.");
+                    "default schema.\r\n");
                 Console.WriteLine("/paramPrefix:ParameterPrefix is optional.  If not specified, no common stored " +
-                    "procedure parameter prefix is defined.");
+                    "procedure parameter prefix is defined.\r\n");
                 Console.WriteLine("/useFieldKeyword is optional (requires C# 13 preview or later).  If not " +
-                    "specified, backing fields will be generated for entity properties that use change tracking.");
+                    "specified, backing fields will be generated for entity properties that use change tracking.\r\n");
+                Console.WriteLine("/useCommunityMvvm is optional.  If not specified, standard properties will " +
+                    "be generated for entity properties that use change tracking.  If specified, entity types " +
+                    "will derived from ObservableObject and fields will be decorated with the ObservableProperty " +
+                    "attribute.  If specified, useFieldKeyword will be ignored.\r\n");
                 Console.WriteLine("/nullableRefTypes is optional (requires C# 8 or later).  If not " +
                     "specified, defaults will not be added to non-nullable reference types and null forgiving " +
-                    "operators will be omitted.");
+                    "operators will be omitted.\r\n");
                 Console.WriteLine("/ef7orLater is optional (requires Entity Framework Core 7.0 or later).  This " +
-                    "controls how certain elements such as key fields are rendered in the generated code.");
+                    "controls how certain elements such as key fields are rendered in the generated code.\r\n");
                 Console.WriteLine("The DBML file to convert and the output folder must be the first and second " +
                     "parameters respectively.  Optional parameters can appear in any order.");
                 return;
@@ -86,6 +91,8 @@ namespace DbmlToEntityFrameworkConverter
                     parameterPrefix = args[i][13..].Trim();
                 else if(args[i].Equals("/useFieldKeyword", StringComparison.OrdinalIgnoreCase))
                     useFieldKeyword = true;
+                else if(args[i].Equals("/useCommunityMvvm", StringComparison.OrdinalIgnoreCase))
+                    useCommunityMvvm = true;
                 else if(args[i].Equals("/nullableRefTypes", StringComparison.OrdinalIgnoreCase))
                 {
                     nullableRefTypes = true;
@@ -106,6 +113,9 @@ namespace DbmlToEntityFrameworkConverter
                 return;
             }
 
+            if(useCommunityMvvm)
+                useFieldKeyword = false;
+
             outputFolder = args[1];
 
             if(!Directory.Exists(outputFolder))
@@ -116,6 +126,7 @@ namespace DbmlToEntityFrameworkConverter
             Console.WriteLine("Default schema: {0}", schemaName);
             Console.WriteLine("Common parameter prefix: {0}", parameterPrefix ?? "(not used)");
             Console.WriteLine("Use field keyword: {0}", useFieldKeyword);
+            Console.WriteLine("Use Community MVVM: {0}", useCommunityMvvm);
             Console.WriteLine("Nullable reference types: {0}", nullableRefTypes);
             Console.WriteLine("EF Core 7.0 or later: {0}", ef7orLater);
 
@@ -285,6 +296,7 @@ namespace DbmlToEntityFrameworkConverter
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+{(useCommunityMvvm ? "using CommunityToolkit.Mvvm.ComponentModel;" : String.Empty)}
 
 using EWSoftware.EntityFramework;
 using EWSoftware.EntityFramework.DataAnnotations;
@@ -374,10 +386,10 @@ namespace {entityNamespace}
                     sw.WriteLine("    [NeverTrack]");
             }
 
-            sw.Write($"    {accessModifier} sealed class {tableType.TypeName}");
+            sw.Write($"    {accessModifier} sealed {(tracksChanges && useCommunityMvvm ? "partial " : String.Empty)}class {tableType.TypeName}");
 
             if(tracksChanges)
-                sw.Write(" : ChangeTrackingEntity");
+                sw.Write(useCommunityMvvm ? " : ObservableObject" : " : ChangeTrackingEntity");
 
             sw.WriteLine("\r\n    {");
 
@@ -400,6 +412,29 @@ namespace {entityNamespace}
 
                 if(!useFieldKeyword && tracksChanges)
                 {
+                    if(useCommunityMvvm)
+                    {
+                        sw.WriteLine("        [ObservableProperty]");
+
+                        if((keyFieldCount == 1 && p.IsPrimaryKey) || ignoreForInsert || ignoreForUpdate)
+                        {
+                            sw.Write("        [property: ");
+
+                            if(keyFieldCount == 1 && p.IsPrimaryKey)
+                            {
+                                sw.Write("Key");
+
+                                if(ignoreForInsert || ignoreForUpdate)
+                                    sw.Write(", ");
+                            }
+
+                            if(ignoreForInsert || ignoreForUpdate)
+                                sw.Write($"Ignore({ignoreForInsert.ToString().ToLowerInvariant()}, {ignoreForUpdate.ToString().ToLowerInvariant()})");
+
+                            sw.WriteLine("]");
+                        }
+                    }
+
                     sw.Write($"        private {p.PropertyType}{(p.IsNullable ? "?" : String.Empty)} {p.BackingFieldName}");
 
                     if(nullableRefTypes && !String.IsNullOrWhiteSpace(p.ReferenceTypeDefault))
@@ -408,52 +443,55 @@ namespace {entityNamespace}
                     sw.WriteLine(";\r\n");
                 }
 
-                if((keyFieldCount == 1 && p.IsPrimaryKey) || ignoreForInsert || ignoreForUpdate)
+                if(!useCommunityMvvm || !tracksChanges)
                 {
-                    sw.Write("        [");
-
-                    if(keyFieldCount == 1 && p.IsPrimaryKey)
-                        sw.Write("Key");
-
-                    if(ignoreForInsert || ignoreForUpdate)
+                    if((keyFieldCount == 1 && p.IsPrimaryKey) || ignoreForInsert || ignoreForUpdate)
                     {
-                        if(p.IsPrimaryKey)
-                            sw.Write(", ");
+                        sw.Write("        [");
 
-                        sw.Write($"Ignore({ignoreForInsert.ToString().ToLowerInvariant()}, {ignoreForUpdate.ToString().ToLowerInvariant()})");
+                        if(keyFieldCount == 1 && p.IsPrimaryKey)
+                        {
+                            sw.Write("Key");
+
+                            if(ignoreForInsert || ignoreForUpdate)
+                                sw.Write(", ");
+                        }
+
+                        if(ignoreForInsert || ignoreForUpdate)
+                            sw.Write($"Ignore({ignoreForInsert.ToString().ToLowerInvariant()}, {ignoreForUpdate.ToString().ToLowerInvariant()})");
+
+                        sw.WriteLine("]");
                     }
 
-                    sw.WriteLine("]");
-                }
+                    sw.Write($"        public {p.PropertyType}{(p.IsNullable ? "?" : String.Empty)} {p.PropertyName}");
 
-                sw.Write($"        public {p.PropertyType}{(p.IsNullable ? "?" : String.Empty)} {p.PropertyName}");
-
-                if(!tracksChanges)
-                    sw.Write(" { get; set; }");
-                else
-                {
-                    if(useFieldKeyword)
+                    if(!tracksChanges)
+                        sw.Write(" { get; set; }");
+                    else
                     {
-                        sw.Write(@"
+                        if(useFieldKeyword)
+                        {
+                            sw.Write(@"
         {
             get;
             set => this.SetWithNotify(value, ref field);
         }");
-                    }
-                    else
-                    {
-                        sw.Write($@"
+                        }
+                        else
+                        {
+                            sw.Write($@"
         {{
             get => {p.BackingFieldName};
             set => this.SetWithNotify(value, ref {p.BackingFieldName});
         }}");
+                        }
                     }
+
+                    if(nullableRefTypes && !String.IsNullOrWhiteSpace(p.ReferenceTypeDefault))
+                        sw.Write(" = {0};", p.ReferenceTypeDefault);
+
+                    sw.WriteLine("\r\n");
                 }
-
-                if(nullableRefTypes && !String.IsNullOrWhiteSpace(p.ReferenceTypeDefault))
-                    sw.Write(" = {0};", p.ReferenceTypeDefault);
-
-                sw.WriteLine("\r\n");
             }
 
             // Write out each of the relationships

@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:vm="using:AvaloniaTestApp.ViewModels"
+  mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+  x:Class="AvaloniaTestApp.StateCodesWindow" x:DataType="vm:StateCodesViewModel"
+  Icon="/Assets/avalonia-logo.ico" Width="500" MinWidth="500" MinHeight="300"
+  Title="Edit State Codes" WindowStartupLocation="CenterOwner" Closed="StateCodesWindow_Closed">
+
+  <Design.DataContext>
+    <vm:StateCodesViewModel/>
+  </Design.DataContext>
+
+  <Grid Margin="10" RowDefinitions="*, Auto">
+    <DataGrid Grid.Row="0" Name="dgStateCodes" ItemsSource="{Binding StateCodes}"
+      SelectedItem="{Binding SelectedItem}" AutoGenerateColumns="False"
+      CanUserResizeColumns="True" HeadersVisibility="All" GridLinesVisibility="All">
+      <Interaction.Behaviors>
+        <AutoFocusBehavior />
+      </Interaction.Behaviors>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="State Code" Binding="{Binding State}" />
+        <DataGridTextColumn Header="State Name" Binding="{Binding StateDesc}" Width="250" />
+        <DataGridTemplateColumn Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button Content="Delete" Margin="5" IsEnabled="{Binding !IsInUse}"
+                Command="{Binding #dgStateCodes((vm:StateCodesViewModel)DataContext).DeleteRowCommand}"
+                CommandParameter="{Binding .}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+      <StackPanel Grid.Column="0" Orientation="Horizontal">
+        <Button Name="btnAdd" Content="_Add" Margin="0,10,0,0" MinWidth="80" Click="btnAdd_Click"/>
+        <Button Content="_Save" Margin="10,10,0,0" MinWidth="80" Command="{Binding SaveCommand}" />
+        <Button Content="Save Asy_nc" Margin="10,10,0,0" MinWidth="80"
+          Command="{Binding SaveAsynchronousCommand}" />
+      </StackPanel>  
+      <Button Grid.Column="1" Content="Close" IsCancel="True" Margin="0,10,0,0" HorizontalAlignment="Right"
+        MinWidth="80" Click="btnClose_Click" />
+    </Grid>
+  </Grid>
+</Window>

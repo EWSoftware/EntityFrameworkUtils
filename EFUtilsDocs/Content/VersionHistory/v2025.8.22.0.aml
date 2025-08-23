@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="3e733635-1d08-4db1-909a-1acc87778c68" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>Changes made in this release:</para>
+		</introduction>
+
+		<section>
+			<content>
+
+				<list class="bullet">
+					<listItem>
+						<para>Fixed the <codeInline>ContinueAwait</codeInline> setting in the <codeInline>DeleteEntityAsync</codeInline>
+method.</para>
+					</listItem>
+
+					<listItem>
+						<para>Updated <codeInline>ChangeTrackingEntity</codeInline> to use
+<codeInline>EqualityComparer&lt;T&gt;.Default.Equals</codeInline> rather than <codeInline>Object.Equals</codeInline>
+when checking for a changed field value.</para>
+					</listItem>
+
+					<listItem>
+						<para>Changed the constraint on all methods that operate on tracked entities from
+<codeInline>ChangeTrackingEntity</codeInline> to <codeInline>class, INotifyPropertyChanged</codeInline>.  This
+allows the methods to work with any type that implements property change notification such as
+<codeInline>ObservableObject</codeInline> in the Community Toolkit MVVM NuGet package.</para>
+					</listItem>
+
+					<listItem>
+						<para>Added a new <legacyItalic>/useCommunityMvvm</legacyItalic> command line option to the DBML
+conversion utility.  When specified, generated entity classes that require change tracking will derive from
+<codeInline>ObservableObject</codeInline> from the Community Toolkit MVVM NuGet package.  Values in the
+entity classes will be marked with the <codeInline>ObservableProperty</codeInline> attribute and written out
+using field syntax.</para>
+					</listItem>
+
+				</list>
+
+			</content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="73c00da4-99f1-47c5-aaf3-0bc31fcc8066" />
+		</relatedTopics>
+
+	</developerConceptualDocument>
+</topic>

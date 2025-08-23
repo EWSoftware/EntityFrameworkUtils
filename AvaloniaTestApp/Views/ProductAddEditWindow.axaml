@@ -1,0 +1,59 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:vm="using:AvaloniaTestApp.ViewModels"
+  mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="330"
+  x:Class="AvaloniaTestApp.ProductAddEditWindow" x:DataType="vm:ProductAddEditViewModel"
+  Icon="/Assets/avalonia-logo.ico" Title="Add a Product" WindowStartupLocation="CenterOwner"
+  CanResize="False" CanMinimize="False" CanMaximize="False" SizeToContent="WidthAndHeight">
+
+  <Design.DataContext>
+    <vm:ProductAddEditViewModel />
+  </Design.DataContext>
+
+  <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+    ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+    <Label Grid.Row="0" Grid.Column="0" Margin="5,5" Content="Product ID" HorizontalAlignment="Right" />
+    <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="5" Margin="5,5"
+      Text="{Binding Product.ProductID}"
+      Width="50" HorizontalAlignment="Left" IsReadOnly="True" TextAlignment="Right" />
+    <Label Grid.Row="1" Grid.Column="0" Margin="5,5" Content="_Product Name" HorizontalAlignment="Right" />
+    <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Margin="5,5"
+      Text="{Binding Product.ProductName, Converter={StaticResource StringToNullConverter}}"
+      Width="300" MaxLength="40" HorizontalAlignment="Left" />
+    <Label Grid.Row="2" Grid.Column="0" Margin="5,5" Content="_Category" HorizontalAlignment="Right" />
+    <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="5" Margin="5,5"
+      Text="{Binding Product.CategoryName, Converter={StaticResource StringToNullConverter}}"
+      Width="150" MaxLength="15" HorizontalAlignment="Left" />
+    <Label Grid.Row="3" Grid.Column="0" Margin="5,5" Content="Co_mpany" HorizontalAlignment="Right" />
+    <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="5" Margin="5,5"
+      Text="{Binding Product.CompanyName, Converter={StaticResource StringToNullConverter}}"
+      Width="300" MaxLength="40" HorizontalAlignment="Left" />
+    <Label Grid.Row="4" Grid.Column="0" Margin="5,5" Content="_Qty Per Unit" HorizontalAlignment="Right" />
+    <TextBox Grid.Row="4" Grid.Column="1" Margin="5,5" Grid.ColumnSpan="5" Text="{Binding Product.QuantityPerUnit}"
+      Width="200" MaxLength="20" HorizontalAlignment="Left" />
+    <Label Grid.Row="5" Grid.Column="0" Margin="5,5" Content="_Unit Price" HorizontalAlignment="Right" />
+    <NumericUpDown Grid.Row="5" Grid.Column="1" Margin="5,5" Minimum="0" Maximum="1000" FormatString="N2"
+      Value="{Binding Product.UnitPrice}" Width="100" HorizontalAlignment="Left" />
+    <Label Grid.Row="5" Grid.Column="2" Margin="5,5" Content="Units _In Stock" HorizontalAlignment="Right" />
+    <NumericUpDown Grid.Row="5" Grid.Column="3" Margin="5,5" Minimum="0" Maximum="1000" FormatString="N0"
+      Value="{Binding Product.UnitsInStock}" Width="100" HorizontalAlignment="Left" />
+    <Label Grid.Row="5" Grid.Column="4" Margin="5,5" Content="Units _On Order" HorizontalAlignment="Right" />
+    <NumericUpDown Grid.Row="5" Grid.Column="5" Margin="5,5" Minimum="0" Maximum="1000" FormatString="N0"
+      Value="{Binding Product.UnitsOnOrder}" Width="100" HorizontalAlignment="Left" />
+    <Label Grid.Row="6" Grid.Column="0" Margin="5,5" Content="_Reorder Level" HorizontalAlignment="Right" />
+    <NumericUpDown Grid.Row="6" Grid.Column="1" Margin="5,5" Minimum="0" Maximum="1000" FormatString="N0"
+      Value="{Binding Product.ReorderLevel}" Width="100" HorizontalAlignment="Left" />
+    <CheckBox Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="4" Margin="5,5"
+      Content="Discon_tinued" IsChecked="{Binding Product.Discontinued}" />
+    <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="6" ColumnDefinitions="Auto,*">
+      <StackPanel Grid.Column="0" Orientation="Horizontal">
+        <Button Content="_Save" Margin="0,10,0,0" MinWidth="80" Click="btnSave_Click"/>
+        <Button Content="_Delete" Margin="10,10,0,0" MinWidth="80" Click="btnDelete_Click" />
+      </StackPanel>
+      <Button Grid.Column="1" Content="Close" IsCancel="True" Margin="0,10,0,0" HorizontalAlignment="Right"
+        MinWidth="80" Click="btnClose_Click" />
+    </Grid>
+  </Grid>
+</Window>

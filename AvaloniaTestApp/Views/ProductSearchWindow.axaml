@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:vm="using:AvaloniaTestApp.ViewModels"
+  mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
+  x:Class="AvaloniaTestApp.ProductSearchWindow" x:DataType="vm:ProductSearchViewModel"
+  Icon="/Assets/avalonia-logo.ico" Width="1000" Height="600" MinWidth="750" MinHeight="300"
+  Title="Search For Products" WindowStartupLocation="CenterOwner">
+
+  <Design.DataContext>
+    <vm:ProductSearchViewModel />
+  </Design.DataContext>
+
+  <Grid Margin="10" RowDefinitions="Auto,*,Auto">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto">
+      <Label Grid.Row="0" Grid.Column="0" Margin="5,5" Content="_Product Name" />
+      <TextBox Name="txtProductName" Grid.Row="0" Grid.Column="1" Margin="0,5" Text="{Binding ProductName}">
+        <Interaction.Behaviors>
+          <AutoFocusBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
+      <Label Grid.Row="1" Grid.Column="0" Margin="5,5" Content="_Category" HorizontalAlignment="Right" />
+      <ComboBox Name="cboCategoryName" Grid.Row="1" Grid.Column="1" Margin="0,5" ItemsSource="{Binding Categories}"
+        SelectedItem="{Binding CategoryName}" />
+      <Label Grid.Row="1" Grid.Column="2" Margin="5,5" Content="Company _Name" HorizontalAlignment="Right" />
+      <ComboBox Name="cboCompanyName" Grid.Row="1" Grid.Column="3" Margin="0,5" ItemsSource="{Binding Companies}"
+        SelectedItem="{Binding CompanyName}" />
+    </Grid>
+    <DataGrid Name="dgProducts" Grid.Row="1" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedItem}"
+      AutoGenerateColumns="False" CanUserResizeColumns="True" HeadersVisibility="All" GridLinesVisibility="All"
+      IsReadOnly="True">
+      <DataGrid.Styles>
+        <Style Selector="DataGridCell.rightAligned">
+          <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+      </DataGrid.Styles>
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Width="80">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button Content="Edit" Margin="5" Click="btnEdit_Click" Tag="{Binding .}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="275" />
+        <DataGridTextColumn Header="Category" Binding="{Binding CategoryName}" Width="120" />
+        <DataGridTextColumn Header="Company" Binding="{Binding CompanyName}" Width="250" />
+        <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, StringFormat=C2}"
+          Width="80" CellStyleClasses="rightAligned">
+        </DataGridTextColumn>
+        <DataGridCheckBoxColumn Header="Discontinued" Binding="{Binding Discontinued}" Width="90" />
+      </DataGrid.Columns>
+    </DataGrid>
+    <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+      <StackPanel Grid.Column="0" Orientation="Horizontal">
+        <Button Content="_Search" IsDefault="True" Margin="0,10,0,0" MinWidth="80" Command="{Binding SearchCommand}" />
+        <Button Name="btnAdd" Content="_Add" Margin="10,10,0,0" MinWidth="80" Click="btnAdd_Click"/>
+      </StackPanel>
+      <Button Grid.Column="1" Content="Close" IsCancel="True" Margin="0,10,0,0" HorizontalAlignment="Right"
+        MinWidth="80" Click="btnClose_Click" />
+    </Grid>
+  </Grid>
+</Window>
