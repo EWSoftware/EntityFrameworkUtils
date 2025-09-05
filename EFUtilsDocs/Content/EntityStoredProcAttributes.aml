@@ -55,6 +55,11 @@ Boolean parameters, the first for whether or not to include it for inserts, and 
 Typically, both parameters are set to false but it is possible to set one or the other to true to include the
 property for insert or updates if required.</para>
 
+				<para>The attribute will usually be applied to properties in the type but can be applied to the class
+or structure with a property name specified to ignore inherited properties that you do not have direct access to
+and should not be considered for inserts and updates.  The attribute can be applied multiple times if there are
+multiple properties to ignore.</para>
+
 				<code language="csharp">
 [LoadAllStoredProcedure("spStateCodes"), InsertStoredProcedure("spStateCodeAddUpdate"),
   UpdateStoredProcedure("spStateCodeAddUpdate"), DeleteStoredProcedure("spStateCodeDelete")]
@@ -89,6 +94,19 @@ public sealed class StateCode : ChangeTrackingEntity
 using var dataContext = new DemoDatabaseDataContext();
 
 var stateCodes = dc.LoadAll&lt;StateCode&gt;().ToList();
+				</code>
+
+				<code language="csharp">
+// This entity has a HasErrors property inherited from ObservableValidator that needs to be
+// ignored for inserts and updates.  Since we don't have direct access to it, we use the
+// attribute on the entity type and specify the property name as well.
+[LoadAllStoredProcedure("spStateCodes"), InsertStoredProcedure("spStateCodeAddUpdate"),
+  UpdateStoredProcedure("spStateCodeAddUpdate"), DeleteStoredProcedure("spStateCodeDelete"),
+  Ignore(true, true, PropertyName = nameof(HasErrors))]
+public sealed class StateCode : ObservableValidator
+{
+    ...
+}
 				</code>
 			</content>
 		</section>

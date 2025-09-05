@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 08/17/2025
+// Updated : 09/05/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -233,11 +233,14 @@ namespace EWSoftware.EntityFramework
             command.CommandText = CreateStoredProcedureName(dataContext, storedProcName);
 
             var inOutParams = new List<(PropertyInfo Property, SqlParameter Parameter)>();
+            var typeIgnoreAttrs = entityType.GetCustomAttributes<IgnoreAttribute>().ToList();
 
             // Add a parameter for each public property unless it is ignored for inserts/updates
             foreach(var p in properties)
             {
-                var ignored = p.GetCustomAttribute<IgnoreAttribute>();
+                var ignored = p.GetCustomAttribute<IgnoreAttribute>() ??
+                    typeIgnoreAttrs.Where(i => (i.PropertyName ?? String.Empty).Equals(
+                        p.Name, StringComparison.Ordinal)).FirstOrDefault();
 
                 if((forInsert && !(ignored?.ForInsert ?? false)) || (!forInsert && !(ignored?.ForUpdate ?? false)))
                 {
@@ -361,6 +364,16 @@ namespace EWSoftware.EntityFramework
                 foreach(var inOut in inOutParams)
                     inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
             }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
+            }
             finally
             {
                 command?.Dispose();
@@ -423,6 +436,16 @@ namespace EWSoftware.EntityFramework
                 // Update output parameters with their values
                 foreach(var inOut in inOutParams)
                     inOut.Property.SetValueFromDatabase(entity, inOut.Parameter.Value);
+            }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
             }
             finally
             {
@@ -969,6 +992,34 @@ namespace EWSoftware.EntityFramework
                     updateKeys?.Invoke(e.Entity, e.State);
             });
         }
+
+        /// <summary>
+        /// Get the method information for the calling method in the given data context type for use in a
+        /// stored procedure method call.
+        /// </summary>
+        /// <param name="dataContext">The data context</param>
+        /// <returns>The method information for the calling method in the given data context</returns>
+        /// <exception cref="InvalidOperationException">This is thrown if the method information cannot be
+        /// determined.</exception>
+        /// <remarks>When a stored procedure method is called asynchronously, the method information must be
+        /// obtained from a stack trace as the call may be inside the compiler generated state machine.  This
+        /// extension method can be used to obtain the necessary method information whether the stored procedure
+        /// method is called synchronously or asynchronously.</remarks>
+        public static MethodInfo GetMethodInfo(this DbContext dataContext)
+        {
+#if !NETSTANDARD2_0
+            ArgumentNullException.ThrowIfNull(dataContext);
+#else
+            if(dataContext == null)
+                throw new ArgumentNullException(nameof(dataContext));
+#endif
+            var type = dataContext.GetType();
+            var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
+                f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == type) ??
+                throw new InvalidOperationException("Unable to get method info"));
+
+            return methodInfo;
+        }
         #endregion
 
         #region Query related data context extension methods
@@ -1503,6 +1554,16 @@ namespace EWSoftware.EntityFramework
 
                 rowsAffected = command.ExecuteNonQuery();
             }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
+            }
             finally
             {
                 command?.Dispose();
@@ -1574,6 +1635,16 @@ namespace EWSoftware.EntityFramework
                 }
 
                 rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
             }
             finally
             {
@@ -2064,6 +2135,16 @@ namespace EWSoftware.EntityFramework
 
                 rowsAffected = command.ExecuteNonQuery();
             }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
+            }
             finally
             {
                 if(closeConnection)
@@ -2205,6 +2286,16 @@ namespace EWSoftware.EntityFramework
                 }
 
                 rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch(Exception ex)
+            {
+                // Add the stored procedure name and parameter values as extra information to help diagnose issues
+                ex.Data["StoredProcedureName"] = command.CommandText;
+
+                foreach(DbParameter p in command.Parameters)
+                    ex.Data[p.ParameterName] = p.Value;
+
+                throw;
             }
             finally
             {

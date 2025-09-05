@@ -9,8 +9,9 @@ using EWSoftware.EntityFramework.DataAnnotations;
 namespace AvaloniaTestApp.Database
 {
     [LoadByKeyStoredProcedure("spProductInfo"), InsertEntityStoredProcedure("spProductAddUpdate"),
-      UpdateEntityStoredProcedure("spProductAddUpdate"), DeleteEntityStoredProcedure("spProductDelete")]
-    public sealed partial class ProductInfo : ObservableObject
+      UpdateEntityStoredProcedure("spProductAddUpdate"), DeleteEntityStoredProcedure("spProductDelete"),
+      Ignore(true, true, PropertyName = nameof(HasErrors))]
+    public sealed partial class ProductInfo : ObservableValidator
     {
         // C# 14.0 or later allows us to use partial properties with the ObservableProperty attribute.
         [ObservableProperty, Key]

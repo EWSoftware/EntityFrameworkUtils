@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : IgnoreAttribute.cs
 // Author  : Eric Woodruff
-// Updated : 11/24/2024
+// Updated : 09/05/2025
 //
 // This file contains an attribute used to mark properties that should be ignored as a parameter for an insert
 // and/or update stored procedure for an entity.
@@ -18,10 +18,16 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     /// This attribute is used to mark properties that should be ignored as a parameter for an insert and/or
     /// update stored procedure for an entity.
     /// </summary>
-    /// <remarks>This allows additional properties not present in the result set or the underlying table being
+    /// <remarks><para>This allows additional properties not present in the result set or the underlying table being
     /// updated to be excluded when performing inserts and updates.  Typically, both parameters are set to false
     /// but it is possible to set one or the other to true to include the property for insert or updates if
-    /// required.</remarks>
+    /// required.</para>
+    /// 
+    /// <para>The attribute will usually be applied to properties in the type but can be applied to the class
+    /// or structure with a property name specified to ignore inherited properties that should not be considered
+    /// for inserts and updates.  The attribute can be applied multiple times if there are multiple properties to
+    /// ignore.</para>
+    /// </remarks>
     ///
     /// <example>
     /// <code language="csharp">
@@ -54,12 +60,32 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     ///     }
     /// }
     /// </code>
+    /// <code language="csharp">
+    /// // This entity has a HasErrors property inherited from ObservableValidator that needs to be
+    /// // ignored for inserts and updates.  Since we don't have direct access to it, we use the
+    /// // attribute on the entity type and specify the property name as well.
+    /// [LoadAllStoredProcedure("spStateCodes"), InsertStoredProcedure("spStateCodeAddUpdate"),
+    ///   UpdateStoredProcedure("spStateCodeAddUpdate"), DeleteStoredProcedure("spStateCodeDelete"),
+    ///   Ignore(true, true, PropertyName = nameof(HasErrors))]
+    /// public sealed class StateCode : ObservableValidator
+    /// {
+    ///     ...
+    /// }
+    /// </code>
     /// </example>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct| AttributeTargets.Property, AllowMultiple = true)]
     public sealed class IgnoreAttribute : Attribute
     {
         #region Properties
         //=====================================================================
+
+        /// <summary>
+        /// This property is used when applied to a class or structure to specify a property name that should be
+        /// ignored that does not appear directly in the type such as an inherited property.
+        /// </summary>
+        /// <remarks>This allows excluding properties to which you do not have access and cannot apply the
+        /// attribute to directly.</remarks>
+        public string? PropertyName { get; set; }
 
         /// <summary>
         /// This read-only property gets the ignored state of the property for insert stored procedures

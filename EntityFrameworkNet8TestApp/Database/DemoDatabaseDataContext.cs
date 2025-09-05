@@ -77,7 +77,7 @@ namespace EntityFrameworkNet8TestApp.Database
         /// <returns></returns>
         public int spStateCodeAddUpdate(string? oldState, string? state, string? stateDesc)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, oldState, state, stateDesc).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
         }
 
         /// <summary>
@@ -87,18 +87,14 @@ namespace EntityFrameworkNet8TestApp.Database
         /// <param name="state">The new/updated state code</param>
         /// <param name="stateDesc">The state description</param>
         /// <returns>The return value of the stored procedure</returns>
-        [MethodStoredProcedure(nameof(spStateCodeAddUpdate))]
+        //[MethodStoredProcedure(nameof(spStateCodeAddUpdate))]
         public async Task<int> spStateCodeAddUpdateAsync(string? oldState, string? state, string? stateDesc)
         {
             // When called asynchronously, the parameters must be passed as an array and we must get the
             // method info from the stack trace as we're inside the compiler generated state machine at
             // this point.  We must also specify the stored procedure name in the method attribute if the
-            // method name does not match the stored procedure name.
-            var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-                f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-                throw new InvalidOperationException("Unable to get async method info"));
-
-            var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [oldState, state, stateDesc]);
+            // method name does not match the stored procedure name less the "Async" suffix.
+            var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [oldState, state, stateDesc]);
 
             return result.ReturnValue;
         }
@@ -110,7 +106,7 @@ namespace EntityFrameworkNet8TestApp.Database
         /// <returns>The return value of the stored procedure</returns>
         public int spStateCodeDelete(string? state)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, state).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).ReturnValue;
         }
 
         /// <summary>
@@ -118,18 +114,14 @@ namespace EntityFrameworkNet8TestApp.Database
         /// </summary>
         /// <param name="state">The state code to delete</param>
         /// <returns>The return value of the stored procedure</returns>
-        [MethodStoredProcedure(nameof(spStateCodeDelete))]
+        //[MethodStoredProcedure(nameof(spStateCodeDelete))]
         public async Task<int> spStateCodeDeleteAsync(string? state)
         {
             // When called asynchronously, the parameters must be passed as an array and we must get the
             // method info from the stack trace as we're inside the compiler generated state machine at
             // this point.  We must also specify the stored procedure name in the method attribute if the
             // method name does not match the stored procedure name.
-            var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-                f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-                throw new InvalidOperationException("Unable get async method info"));
-
-            var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [state]);
+            var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [state]);
 
             return result.ReturnValue;
         }
@@ -144,8 +136,8 @@ namespace EntityFrameworkNet8TestApp.Database
         public IEnumerable<spProductSearchResult> spProductSearch(string? productName, string? categoryName,
             string? companyName)
         {
-            return this.ExecuteMethodQuery<spProductSearchResult>((MethodInfo)MethodInfo.GetCurrentMethod()!,
-                productName, categoryName, companyName);
+            return this.ExecuteMethodQuery<spProductSearchResult>(this.GetMethodInfo(), productName, categoryName,
+                companyName);
         }
 
         /// <summary>
@@ -155,7 +147,7 @@ namespace EntityFrameworkNet8TestApp.Database
         /// <param name="categoryName">The category name</param>
         /// <param name="companyName">The company name</param>
         /// <returns>An enumerable list of the found products</returns>
-        [MethodStoredProcedure(nameof(spProductSearch))]
+        //[MethodStoredProcedure(nameof(spProductSearch))]
         public IAsyncEnumerable<spProductSearchResult> spProductSearchAsync(string? productName,
           string? categoryName, string? companyName)
         {
@@ -169,7 +161,7 @@ namespace EntityFrameworkNet8TestApp.Database
 
             // Note that we can't pass a cancellation token as it would look like one of the method parameters.
             // Use the WithCancellation() extension method on the call to this method instead.
-            return this.ExecuteMethodQueryAsync<spProductSearchResult>(methodInfo, [productName, categoryName,
+            return this.ExecuteMethodQueryAsync<spProductSearchResult>(this.GetMethodInfo(), [productName, categoryName,
                 companyName]);
         }
         #endregion

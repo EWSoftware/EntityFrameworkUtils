@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="58821c50-69c8-4b6b-be71-b88953973a37" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>Changes made in this release:</para>
+		</introduction>
+
+		<section>
+			<content>
+				<list class="bullet">
+					<listItem>
+						<para>Updated the <codeEntityReference qualifyHint="false">T:EWSoftware.EntityFramework.DataAnnotations.IgnoreAttribute</codeEntityReference>
+so that it can be applied to classes and structures along with a property name to ignore inherited properties that
+are not accessible and cannot have the attribute applied to them directly.</para>
+					</listItem>
+				</list>
+
+			</content>
+		</section>
+
+		<relatedTopics>
+
+		</relatedTopics>
+
+	</developerConceptualDocument>
+</topic>

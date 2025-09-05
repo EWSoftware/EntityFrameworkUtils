@@ -56,7 +56,7 @@
     <BuildAssemblerVerbosity>OnlyWarningsAndErrors</BuildAssemblerVerbosity>
     <SaveComponentCacheCapacity>100</SaveComponentCacheCapacity>
     <HelpTitle>EWSofware Entity Framework Utilities Library Documentation</HelpTitle>
-    <HelpFileVersion>2025.8.22.0</HelpFileVersion>
+    <HelpFileVersion>2025.9.5.0</HelpFileVersion>
     <NamingMethod>Guid</NamingMethod>
     <ContentPlacement>AboveNamespaces</ContentPlacement>
     <RootNamespaceContainer>False</RootNamespaceContainer>
@@ -171,6 +171,7 @@
     <None Include="Content\VersionHistory\v2025.6.14.0.aml" />
     <None Include="Content\VersionHistory\v2025.7.19.0.aml" />
     <None Include="Content\VersionHistory\v2025.8.22.0.aml" />
+    <None Include="Content\VersionHistory\v2025.9.5.0.aml" />
     <None Include="Content\VersionHistory\VersionHistory.aml" />
     <None Include="Content\Welcome.aml" />
   </ItemGroup>
