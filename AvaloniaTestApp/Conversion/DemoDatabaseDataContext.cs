@@ -66,7 +66,7 @@ namespace AvaloniaTestApp.Database
 
         public int spStateCodeAddUpdate(string? oldState, string? state, string? stateDesc)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, oldState, state, stateDesc).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
         }
 
         // TODO: This method is used to delete entities.  You may be able to 
@@ -75,7 +75,7 @@ namespace AvaloniaTestApp.Database
         // SubmitChanges<TEntity>() extension method instead.
         public int spStateCodeDelete(string? state)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, state).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).ReturnValue;
         }
 
         // TODO: This method is used to delete entities.  You may be able to 
@@ -84,7 +84,7 @@ namespace AvaloniaTestApp.Database
         // SubmitChanges<TEntity>() extension method instead.
         public int spProductDelete(int? productID)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, productID).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), productID).ReturnValue;
         }
 
         // TODO: This method is used to insert entities.  You may be able to 
@@ -97,7 +97,7 @@ namespace AvaloniaTestApp.Database
         // SubmitChanges<TEntity>() extension method instead.
         public int spProductAddUpdate(ref int? productID, string? productName, string? categoryName, string? companyName, string? quantityPerUnit, decimal? unitPrice, short? unitsInStock, short? unitsOnOrder, short? reorderLevel, bool? discontinued)
         {
-            var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, productID, productName, categoryName, companyName, quantityPerUnit, unitPrice, unitsInStock, unitsOnOrder, reorderLevel, discontinued);
+            var result = this.ExecuteMethodNonQuery(this.GetMethodInfo(), productID, productName, categoryName, companyName, quantityPerUnit, unitPrice, unitsInStock, unitsOnOrder, reorderLevel, discontinued);
 
             productID = (int?)result.OutputValues[nameof(productID)];
 
@@ -114,7 +114,7 @@ namespace AvaloniaTestApp.Database
         // SubmitChanges<TEntity>() extension method instead.
         public int spDemoTableAddUpdate(ref int? listKey, string? label, string? textValue, DateTime? dateValue, bool? boolValue, System.Xml.Linq.XElement? xmlValue, Guid? guidValue, byte[]? imageValue)
         {
-            var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey, label, textValue, dateValue, boolValue, xmlValue, guidValue, imageValue);
+            var result = this.ExecuteMethodNonQuery(this.GetMethodInfo(), listKey, label, textValue, dateValue, boolValue, xmlValue, guidValue, imageValue);
 
             listKey = (int?)result.OutputValues[nameof(listKey)];
 
@@ -127,7 +127,7 @@ namespace AvaloniaTestApp.Database
         // SubmitChanges<TEntity>() extension method instead.
         public int spDemoTableDelete(int? listKey)
         {
-            return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, listKey).ReturnValue;
+            return this.ExecuteMethodNonQuery(this.GetMethodInfo(), listKey).ReturnValue;
         }
 
         // TODO: All of this method's parameters match properties on the result set type.
@@ -136,7 +136,7 @@ namespace AvaloniaTestApp.Database
         // if the corresponding properties are marked as the primary key.
         public IEnumerable<spProductSearchResult> spProductSearch(string? productName, string? categoryName, string? companyName)
         {
-            return this.ExecuteMethodQuery<spProductSearchResult>((MethodInfo)MethodInfo.GetCurrentMethod()!, productName, categoryName, companyName);
+            return this.ExecuteMethodQuery<spProductSearchResult>(this.GetMethodInfo(), productName, categoryName, companyName);
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
@@ -144,7 +144,7 @@ namespace AvaloniaTestApp.Database
         // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<spCategoriesResult> spCategories()
         {
-            return this.ExecuteMethodQuery<spCategoriesResult>((MethodInfo)MethodInfo.GetCurrentMethod()!);
+            return this.ExecuteMethodQuery<spCategoriesResult>(this.GetMethodInfo());
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
@@ -152,7 +152,7 @@ namespace AvaloniaTestApp.Database
         // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<spCompaniesResult> spCompanies()
         {
-            return this.ExecuteMethodQuery<spCompaniesResult>((MethodInfo)MethodInfo.GetCurrentMethod()!);
+            return this.ExecuteMethodQuery<spCompaniesResult>(this.GetMethodInfo());
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
@@ -160,7 +160,7 @@ namespace AvaloniaTestApp.Database
         // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<StateCode> spStateCodes()
         {
-            return this.ExecuteMethodQuery<StateCode>((MethodInfo)MethodInfo.GetCurrentMethod()!);
+            return this.ExecuteMethodQuery<StateCode>(this.GetMethodInfo());
         }
 
         // TODO: This method's parameters match the key on the result set type.  You
@@ -168,7 +168,7 @@ namespace AvaloniaTestApp.Database
         // result set type and use the LoadByKey<TEntity>() extension method instead.
         public IEnumerable<ProductInfo> spProductInfo(int? productID)
         {
-            return this.ExecuteMethodQuery<ProductInfo>((MethodInfo)MethodInfo.GetCurrentMethod()!, productID);
+            return this.ExecuteMethodQuery<ProductInfo>(this.GetMethodInfo(), productID);
         }
 
         // TODO: This method has no parameters.  You may be able to remove it
@@ -176,7 +176,7 @@ namespace AvaloniaTestApp.Database
         // and use the LoadAll<TEntity>() extension method instead.
         public IEnumerable<DemoTable> spDemoTableData()
         {
-            return this.ExecuteMethodQuery<DemoTable>((MethodInfo)MethodInfo.GetCurrentMethod()!);
+            return this.ExecuteMethodQuery<DemoTable>(this.GetMethodInfo());
         }
 
         #endregion

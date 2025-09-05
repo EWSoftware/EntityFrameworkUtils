@@ -26,21 +26,20 @@ namespace EWSoftware.EntityFramework.DataAnnotations
     /// [MethodStoredProcedure("spStateCodeAddUpdate")]
     /// public int AddOrUpdateStateCode(string? oldState, string? state, string? stateDesc)
     /// {
-    ///     return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, oldState,
-    ///         state, stateDesc).ReturnValue;
+    ///     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
     /// }
     /// 
     /// [MethodStoredProcedure("spStateCodeDelete")]
     /// public int DeleteStateCode(string? state)
     /// {
-    ///     return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, state).ReturnValue;
+    ///     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).ReturnValue;
     /// }
     /// 
     /// [MethodStoredProcedure("spProductSearch")]
     /// public IEnumerable&lt;ProductSearchResult&gt; SearchForProducts(string? productName, string? categoryName,
     ///     string? companyName)
     /// {
-    ///     return this.ExecuteMethodQuery&lt;ProductSearchResult&gt;((MethodInfo)MethodInfo.GetCurrentMethod()!,
+    ///     return this.ExecuteMethodQuery&lt;ProductSearchResult&gt;(this.GetMethodInfo(),
     ///         productName, categoryName, companyName);
     /// }
     /// </code>

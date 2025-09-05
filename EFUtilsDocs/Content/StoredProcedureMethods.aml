@@ -41,21 +41,19 @@ property, the suffix will be removed from the method name to obtain the stored p
 // For these the stored procedure name is assumed to be the same as the method name	
 public int spStateCodeAddUpdate(string? oldState, string? state, string? stateDesc)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, oldState,
-        state, stateDesc).ReturnValue;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
 }
 
 public int spStateCodeDelete(string? state)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        state).RowsAffected;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).RowsAffected;
 }
 
 public IEnumerable&lt;spProductSearchResult&gt; spProductSearch(string? productName, string? categoryName,
     string? companyName)
 {
-    return this.ExecuteMethodQuery&lt;spProductSearchResult&gt;((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        productName, categoryName, companyName);
+    return this.ExecuteMethodQuery&lt;spProductSearchResult&gt;(this.GetMethodInfo(), productName,
+        categoryName, companyName);
 }
 
 // Or we can change the method name to something else and specify the stored
@@ -63,22 +61,21 @@ public IEnumerable&lt;spProductSearchResult&gt; spProductSearch(string? productN
 [MethodStoredProcedure("spStateCodeAddUpdate")]
 public int AddOrUpdateStateCode(string? oldState, string? state, string? stateDesc)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, oldState,
-        state, stateDesc).ReturnValue;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
 }
 
 [MethodStoredProcedure("spStateCodeDelete")]
 public int DeleteStateCode(string? state)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!, state).ReturnValue;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).ReturnValue;
 }
 
 [MethodStoredProcedure("spProductSearch")]
 public IEnumerable&lt;ProductSearchResult&gt; SearchForProducts(string? productName, string? categoryName,
     string? companyName)
 {
-    return this.ExecuteMethodQuery&lt;ProductSearchResult&gt;((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        productName, categoryName, companyName);
+    return this.ExecuteMethodQuery&lt;ProductSearchResult&gt;(this.GetMethodInfo(), productName,
+        categoryName, companyName);
 }
 				</code>
 			</content>
@@ -109,15 +106,14 @@ context method.</para>
 public int spStockAdd(string symbol, string assetDescription, decimal currentBid,
   decimal currentAsk, decimal priceChangePercent)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        symbol, assetDescription, currentBid, currentAsk, priceChangePercent).ReturnValue;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), symbol, assetDescription, currentBid,
+        currentAsk, priceChangePercent).ReturnValue;
 }
 
 // Execute a stored procedure and return the number of rows affected
 public int spStockDelete(string symbol)
 {
-    return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        symbol).RowsAffected;
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), symbol).RowsAffected;
 }
 
 // Execute a stored procedure and return the output parameters via the ref parameters on
@@ -125,8 +121,8 @@ public int spStockDelete(string symbol)
 public int spCheckForEmployeeSchedule(string bidGroup, int entityKey,
   ref bool bidGroupScheduled, ref bool entityScheduled)
 {
-    var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        bidGroup, entityKey, bidGroupScheduled, entityScheduled);
+    var result = this.ExecuteMethodNonQuery(this.GetMethodInfo(), bidGroup, entityKey,
+        bidGroupScheduled, entityScheduled);
 
     bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
     entityScheduled = (bool)result.OutputValues[nameof(entityScheduled);
@@ -159,9 +155,8 @@ the query's result set.</para>
 public IEnumerable&lt;spTransactionListResult&gt; spTransactionList(int accountKey,
   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
 {
-    return this.ExecuteMethodQuery&lt;spTransactionListResult&gt;(
-        (MethodInfo)MethodInfo.GetCurrentMethod()!, accountKey, symbol,
-        fromDate, toDate, txType);
+    return this.ExecuteMethodQuery&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
+        accountKey, symbol, fromDate, toDate, txType);
 }
 				</code>
 			</content>
@@ -184,7 +179,8 @@ property value.  If you use a suffix different from the property value, you will
 					<listItem>
 						<para>The method information must be obtained using the stack trace to find the actual called method.
 This is required because the code within the stored procedure method is rewritten by the compiler and is
-placed inside a separate compiler generated method.</para>
+placed inside a separate compiler generated method.  Always use the <codeInline>GetMethodInfo</codeInline>
+extension method as shown in the examples as it will work whether the method is synchronous or asynchronous.</para>
 					</listItem>
 
 					<listItem>
@@ -210,16 +206,7 @@ extension method can be used instead to achieve the same result.</para>
 public async int spStockAddAsync(string symbol, string assetDescription,
   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
 {
-    // When called asynchronously, the parameters must be passed as an array
-    // and we must get the method info from the stack trace as we're inside the
-    // compiler generated state machine at this point.  We must also specify the
-    // stored procedure name in the method attribute if the method name does not
-    // match the stored procedure name.
-    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-            throw new InvalidOperationException("Unable to get async method info"));
-
-    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol,
+    var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol,
         assetDescription, currentBid, currentAsk, priceChangePercent]);
 
     return result.ReturnValue;
@@ -229,16 +216,7 @@ public async int spStockAddAsync(string symbol, string assetDescription,
 [MethodStoredProcedure("spStockDelete")]
 public async int spStockDeleteAsync(string symbol)
 {
-    // When called asynchronously, the parameters must be passed as an array
-    // and we must get the method info from the stack trace as we're inside the
-    // compiler generated state machine at this point.  We must also specify the
-    // stored procedure name in the method attribute if the method name does not
-    // match the stored procedure name.
-    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-            throw new InvalidOperationException("Unable to get async method info"));
-
-    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol]);
+    var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol]);
 
     return result.RowsAffected;
 }
@@ -249,17 +227,8 @@ public async int spStockDeleteAsync(string symbol)
 public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
   ref bool bidGroupScheduled, ref bool entityScheduled)
 {
-    // When called asynchronously, the parameters must be passed as an array
-    // and we must get the method info from the stack trace as we're inside the
-    // compiler generated state machine at this point.  We must also specify the
-    // stored procedure name in the method attribute if the method name does not
-    // match the stored procedure name.
-    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-            throw new InvalidOperationException("Unable to get async method info"));
-
-    var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [bidGroup, entityKey,
-        bidGroupScheduled, entityScheduled]);
+    var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [bidGroup,
+        entityKey, bidGroupScheduled, entityScheduled]);
 
     bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
     entityScheduled = (bool)result.OutputValues[nameof(entityScheduled);
@@ -272,19 +241,10 @@ public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
 public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
 {
-    // When called asynchronously, the parameters must be passed as an array
-    // and we must get the method info from the stack trace as we're inside the
-    // compiler generated state machine at this point.  We must also specify the
-    // stored procedure name in the method attribute if the method name does not
-    // match the stored procedure name.
-    var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-            throw new InvalidOperationException("Unable to get async method info"));
-
     // Note that we can't pass a cancellation token as it would look like one of
     // the method parameters.  Use the WithCancellation() extension method on the
     // call to this method instead.
-    return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(methodInfo,
+    return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
         [accountKey, symbol, fromDate, toDate, txType]);
 }
 

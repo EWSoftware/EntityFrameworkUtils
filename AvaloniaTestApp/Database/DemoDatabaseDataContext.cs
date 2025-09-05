@@ -89,10 +89,9 @@ namespace AvaloniaTestApp.Database
         //[MethodStoredProcedure(nameof(spStateCodeAddUpdate))]
         public async Task<int> spStateCodeAddUpdateAsync(string? oldState, string? state, string? stateDesc)
         {
-            // When called asynchronously, the parameters must be passed as an array and we must get the
-            // method info from the stack trace as we're inside the compiler generated state machine at
-            // this point.  We must also specify the stored procedure name in the method attribute if the
-            // method name does not match the stored procedure name less the "Async" suffix.
+            // When called asynchronously, the parameters must be passed as an array.  We must also specify the
+            // stored procedure name in the method attribute if the method name does not match the stored
+            // procedure name.
             var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [oldState, state, stateDesc]);
 
             return result.ReturnValue;
@@ -116,10 +115,9 @@ namespace AvaloniaTestApp.Database
         //[MethodStoredProcedure(nameof(spStateCodeDelete))]
         public async Task<int> spStateCodeDeleteAsync(string? state)
         {
-            // When called asynchronously, the parameters must be passed as an array and we must get the
-            // method info from the stack trace as we're inside the compiler generated state machine at
-            // this point.  We must also specify the stored procedure name in the method attribute if the
-            // method name does not match the stored procedure name.
+            // When called asynchronously, the parameters must be passed as an array.  We must also specify the
+            // stored procedure name in the method attribute if the method name does not match the stored
+            // procedure name.
             var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [state]);
 
             return result.ReturnValue;
@@ -150,10 +148,9 @@ namespace AvaloniaTestApp.Database
         public IAsyncEnumerable<spProductSearchResult> spProductSearchAsync(string? productName,
           string? categoryName, string? companyName)
         {
-            // When called asynchronously, the parameters must be passed as an array and we must get the
-            // method info from the stack trace as we're inside the compiler generated state machine at
-            // this point.  We must also specify the stored procedure name in the method attribute if the
-            // method name does not match the stored procedure name.
+            // When called asynchronously, the parameters must be passed as an array.  We must also specify the
+            // stored procedure name in the method attribute if the method name does not match the stored
+            // procedure name.
 
             // Note that we can't pass a cancellation token as it would look like one of the method parameters.
             // Use the WithCancellation() extension method on the call to this method instead.

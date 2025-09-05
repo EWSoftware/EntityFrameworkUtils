@@ -1005,6 +1005,15 @@ namespace EWSoftware.EntityFramework
         /// obtained from a stack trace as the call may be inside the compiler generated state machine.  This
         /// extension method can be used to obtain the necessary method information whether the stored procedure
         /// method is called synchronously or asynchronously.</remarks>
+        /// <example>
+        /// <code language="cs">
+        /// [MethodStoredProcedure("spStateCodeAddUpdate")]
+        /// public int AddOrUpdateStateCode(string? oldState, string? state, string? stateDesc)
+        /// {
+        ///     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
+        /// }
+        /// </code>
+        /// </example>
         public static MethodInfo GetMethodInfo(this DbContext dataContext)
         {
 #if !NETSTANDARD2_0
@@ -2076,15 +2085,14 @@ namespace EWSoftware.EntityFramework
         /// public int spStockAdd(string symbol, string assetDescription, decimal currentBid,
         ///   decimal currentAsk, decimal priceChangePercent)
         /// {
-        ///     return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        ///         symbol, assetDescription, currentBid, currentAsk, priceChangePercent).ReturnValue;
+        ///     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), symbol, assetDescription,
+        ///         currentBid, currentAsk, priceChangePercent).ReturnValue;
         /// }
         /// 
         /// // Execute a stored procedure and return the number of rows affected
         /// public int spStockDelete(string symbol)
         /// {
-        ///     return this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        ///         symbol).RowsAffected;
+        ///     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), symbol).RowsAffected;
         /// }
         /// 
         /// // Execute a stored procedure and return the output parameters via the ref parameters on
@@ -2092,8 +2100,8 @@ namespace EWSoftware.EntityFramework
         /// public int spCheckForEmployeeSchedule(string bidGroup, int entityKey,
         ///   ref bool bidGroupScheduled, ref bool entityScheduled)
         /// {
-        ///     var result = this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod()!,
-        ///         bidGroup, entityKey, bidGroupScheduled, entityScheduled);
+        ///     var result = this.ExecuteMethodNonQuery(this.GetMethodInfo(), bidGroup, entityKey,
+        ///         bidGroupScheduled, entityScheduled);
         ///
         ///     bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
         ///     entityScheduled = (bool)result.OutputValues[nameof(entityScheduled);
@@ -2196,18 +2204,8 @@ namespace EWSoftware.EntityFramework
         /// public async int spStockAddAsync(string symbol, string assetDescription,
         ///   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
         /// {
-        ///     // When called asynchronously, the parameters must be passed as an array
-        ///     // and we must get the method info from the stack trace as we're inside the
-        ///     // compiler generated state machine at this point.  We must also specify the
-        ///     // stored procedure name in the method attribute if the method name does not
-        ///     // match the stored procedure name.
-        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        ///         frame => frame.GetMethod()).FirstOrDefault(
-        ///             item => item!.DeclaringType == GetType()) ??
-        ///                throw new InvalidOperationException("Unable to get async method info"));
-        ///
-        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol, assetDescription,
-        ///         currentBid, currentAsk, priceChangePercent]);
+        ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol,
+        ///         assetDescription, currentBid, currentAsk, priceChangePercent]);
         ///         
         ///     return result.ReturnValue;
         /// }
@@ -2215,16 +2213,7 @@ namespace EWSoftware.EntityFramework
         /// // Execute a stored procedure and return the number of rows affected
         /// public async int spStockDeleteAsync(string symbol)
         /// {
-        ///     // When called asynchronously, the parameters must be passed as an array
-        ///     // and we must get the method info from the stack trace as we're inside the
-        ///     // compiler generated state machine at this point.  We must also specify the
-        ///     // stored procedure name in the method attribute if the method name does not
-        ///     // match the stored procedure name.
-        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-        ///             throw new InvalidOperationException("Unable to get async method info"));
-        ///
-        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [symbol]);
+        ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol]);
         ///     
         ///     return result.RowsAffected;
         /// }
@@ -2234,16 +2223,7 @@ namespace EWSoftware.EntityFramework
         /// public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
         ///   ref bool bidGroupScheduled, ref bool entityScheduled)
         /// {
-        ///     // When called asynchronously, the parameters must be passed as an array
-        ///     // and we must get the method info from the stack trace as we're inside the
-        ///     // compiler generated state machine at this point.  We must also specify the
-        ///     // stored procedure name in the method attribute if the method name does not
-        ///     // match the stored procedure name.
-        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-        ///             throw new InvalidOperationException("Unable to get async method info"));
-        ///
-        ///     var result = await this.ExecuteMethodNonQueryAsync(methodInfo, [bidGroup, entityKey,
+        ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [bidGroup, entityKey,
         ///         bidGroupScheduled, entityScheduled]);
         ///
         ///     bidGroupScheduled = (bool)result.OutputValues[nameof(bidGroupScheduled);
@@ -2346,9 +2326,8 @@ namespace EWSoftware.EntityFramework
         /// public IEnumerable&lt;spTransactionListResult&gt; spTransactionList(int accountKey,
         ///   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
         /// {
-        ///     return this.ExecuteMethodQuery&lt;spTransactionListResult&gt;(
-        ///         (MethodInfo)MethodInfo.GetCurrentMethod()!, accountKey, symbol,
-        ///         fromDate, toDate, txType);
+        ///     return this.ExecuteMethodQuery&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
+        ///         accountKey, symbol, fromDate, toDate, txType);
         /// }
         /// </code>
         /// </example>
@@ -2444,19 +2423,10 @@ namespace EWSoftware.EntityFramework
         /// public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
         ///   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
         /// {
-        ///     // When called asynchronously, the parameters must be passed as an array
-        ///     // and we must get the method info from the stack trace as we're inside the
-        ///     // compiler generated state machine at this point.  We must also specify the
-        ///     // stored procedure name in the method attribute if the method name does not
-        ///     // match the stored procedure name.
-        ///     var methodInfo = (MethodInfo)(new StackTrace().GetFrames().Select(
-        ///         f => f.GetMethod()).FirstOrDefault(m => m!.DeclaringType == GetType()) ??
-        ///             throw new InvalidOperationException("Unable to get async method info"));
-        ///
         ///     // Note that we can't pass a cancellation token as it would look like one of
         ///     // the method parameters.  Use the WithCancellation() extension method on the
         ///     // call to this method instead.
-        ///     return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(methodInfo,
+        ///     return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
         ///         [accountKey, symbol, fromDate, toDate, txType]);
         /// }
         /// 

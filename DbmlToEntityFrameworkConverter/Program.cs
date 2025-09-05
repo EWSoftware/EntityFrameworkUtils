@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : Program.cs
 // Author  : Eric Woodruff
-// Updated : 08/16/2025
+// Updated : 09/05/2025
 //
 // This file contains a utility used to convert LINQ to SQL DBML file definitions to rough equivalents of their
 // Entity Framework counterparts.
@@ -759,13 +759,13 @@ namespace {contextNamespace}
                 }
 
                 if(f.ResultSetType != null)
-                    sw.Write($"            return this.ExecuteMethodQuery<{f.ResultSetType.TypeName}>((MethodInfo)MethodInfo.GetCurrentMethod(){nullForgiving}");
+                    sw.Write($"            return this.ExecuteMethodQuery<{f.ResultSetType.TypeName}>(this.GetMethodInfo()");
                 else
                 {
                     if(f.HasReturnValue || hasOutputValues)
-                        sw.Write($"            {returnValue} this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod(){nullForgiving}");
+                        sw.Write($"            {returnValue} this.ExecuteMethodNonQuery(this.GetMethodInfo()");
                     else
-                        sw.Write($"            this.ExecuteMethodNonQuery((MethodInfo)MethodInfo.GetCurrentMethod(){nullForgiving}");
+                        sw.Write($"            this.ExecuteMethodNonQuery(this.GetMethodInfo()");
                 }
 
                 if(f.Parameters.Count == 0)

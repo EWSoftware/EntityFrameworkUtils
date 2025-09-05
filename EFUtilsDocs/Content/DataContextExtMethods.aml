@@ -111,6 +111,24 @@ dataContext.CheckAndUpdateKeys&lt;ChildTable&gt;(
 			</content>
 		</section>
 
+		<section address="GetMethodInfo">
+			<title>GetMethodInfo</title>
+			<content>
+				<para>This extension method is used within stored procedure data context methods to get the method
+information for the calling method.  This information is used to get the parameter names and data types for use
+in the stored procedure method call.  This extension method can be used to obtain the necessary method
+information whether the stored procedure method is called synchronously or asynchronously.</para>
+
+				<code language="csharp">
+[MethodStoredProcedure("spStateCodeAddUpdate")]
+public int AddOrUpdateStateCode(string? oldState, string? state, string? stateDesc)
+{
+    return this.ExecuteMethodNonQuery(this.GetMethodInfo(), oldState, state, stateDesc).ReturnValue;
+}
+				</code>
+			</content>
+		</section>
+
 		<relatedTopics>
 			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
 		</relatedTopics>
