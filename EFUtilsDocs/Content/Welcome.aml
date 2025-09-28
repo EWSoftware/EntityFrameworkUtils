@@ -66,6 +66,27 @@ access code especially if you made significant use of stored procedures with it.
 			</content>
 		</section>
 
+		<section>
+			<title>Making a Donation</title>
+			<content>
+				<para>If you would like to support this project, you can make a donation of any amount you like by
+clicking on the PayPal donation button below.  Another option is to click the <legacyBold>Sponsor</legacyBold>
+button in the page footer to sponsor the project on GitHub with either a one-time or monthly amount.</para>
+
+				<para>
+					<markup>
+						<a href="https://www.paypal.com/donate/?hosted_button_id=9AZTJ4WV3BLKE"
+							 target="_blank" title="Make a donation">
+							<img border="0" src="../media/PayPal.gif" alt="Make donations with PayPal - It's fast, free and secure!"/>
+						</a>
+					</markup>
+				</para>
+
+				<para>Thanks to those of you that have made a donation. It is much appreciated!</para>
+
+			</content>
+		</section>
+
 		<relatedTopics>
 			<link xlink:href="73c00da4-99f1-47c5-aaf3-0bc31fcc8066" />
 		</relatedTopics>
