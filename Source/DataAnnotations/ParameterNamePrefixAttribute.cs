@@ -1,6 +1,6 @@
 ﻿//===============================================================================================================
 // System  : EWSoftware Entity Framework Utilities
-// File    : ParamaterNamePrefixAttribute.cs
+// File    : ParameterNamePrefixAttribute.cs
 // Author  : Eric Woodruff
 // Updated : 11/25/2024
 //

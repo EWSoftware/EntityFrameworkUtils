@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : PropertyInfo.cs
 // Author  : Eric Woodruff
-// Updated : 12/16/2024
+// Updated : 10/02/2025
 //
 // This file contains a class used to contain entity type property information from a DBML file
 //
@@ -85,6 +85,10 @@ namespace DbmlToEntityFrameworkConverter
         public PropertyInfo(XElement propertyInfo)
         {
             this.PropertyName = propertyInfo.Attribute("Name")!.Value;
+
+            if(String.IsNullOrWhiteSpace(this.PropertyName))
+                this.PropertyName = propertyInfo.Attribute("Member")?.Value ?? "ColumnNameNotSpecified";
+
             this.BackingFieldName = $"_{Char.ToLowerInvariant(this.PropertyName[0])}{this.PropertyName[1..]}";
             this.PropertyType = PropertyTypes[propertyInfo.Attribute("Type")!.Value];
             this.IsPrimaryKey = (bool?)propertyInfo.Attribute("IsPrimaryKey") ?? false;

@@ -44,6 +44,30 @@ public sealed class StateCode
 			</content>
 		</section>
 
+		<section address="ParameterName">
+			<title>ParameterNameAttribute</title>
+			<content>
+				<para>Similar to the <codeInline>ColumnAttribute</codeInline>, a <codeInline>ParameterNameAttribute</codeInline>
+can be applied to a property to specify the stored procedure parameter name to use for it.  If specified along
+with a <codeInline>ColumnAttribute</codeInline>, the <codeInline>ParameterNameAttribute</codeInline> will take
+precedence.  This is useful when the name in the result set differs from the parameter name as shown in the
+example below.</para>
+
+				<code language="csharp">
+public sealed class CaseInformation
+{
+    // The name in the result set contains a space.  For the parameter name,
+    // it uses an underscore.
+    [Column("Case Number"), ParameterName("Case_Number")]
+    public string CaseNumber { get; set; }
+    .
+    .
+    .
+}
+				</code>
+			</content>
+		</section>
+
 		<section address="Ignore">
 			<title>IgnoreAttribute</title>
 			<content>

@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 09/05/2025
+// Updated : 10/17/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -128,6 +128,15 @@ namespace EWSoftware.EntityFramework
             var connection = dataContext.Database.GetDbConnection();
             var command = connection.CreateCommand();
 
+            // If any properties have a column name attribute, add an entry for the alias
+            foreach(var p in properties.Values.ToList())
+            {
+                var cn = p.GetCustomAttribute<ColumnAttribute>();
+
+                if(cn != null)
+                    properties[cn.Name!] = p;
+            }
+
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
 
@@ -150,8 +159,9 @@ namespace EWSoftware.EntityFramework
                     if(!properties.TryGetValue(key, out var p))
                         throw new InvalidOperationException($"The key property {key} was not found on the entity");
 
-                    // If the property has a column attribute, use the name from it instead
-                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
+                    // If the property has a parameter name or column attribute, use the name from it instead
+                    string? columnName = p.GetCustomAttribute<ParameterNameAttribute>()?.Name ??
+                        p.GetCustomAttribute<ColumnAttribute>()?.Name;
 
                     object? value = parameters[paramIdx++];
 
@@ -171,7 +181,7 @@ namespace EWSoftware.EntityFramework
 
                     // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
                     // using any default value assigned to the parameter.
-                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? key}",
+                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName ?? key}",
                         value ?? DBNull.Value);
                     param.SetParameterType(p.PropertyType);
                     command.Parameters.Add(param);
@@ -244,13 +254,14 @@ namespace EWSoftware.EntityFramework
 
                 if((forInsert && !(ignored?.ForInsert ?? false)) || (!forInsert && !(ignored?.ForUpdate ?? false)))
                 {
-                    // If the property has a column attribute, use the name from it instead
-                    var columnName = p.GetCustomAttribute<ColumnAttribute>();
+                    // If the property has a parameter name or column attribute, use the name from it instead
+                    string? columnName = p.GetCustomAttribute<ParameterNameAttribute>()?.Name ??
+                        p.GetCustomAttribute<ColumnAttribute>()?.Name;
                     var timestamp = p.GetCustomAttribute<TimestampAttribute>();
 
                     // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
                     // using any default value assigned to the parameter.
-                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? p.Name}",
+                    var param = new SqlParameter($"@{parameterNamePrefix}{columnName ?? p.Name}",
                         p.GetValue(entity) ?? DBNull.Value);
                     param.SetParameterType(p.PropertyType);
 
@@ -310,12 +321,13 @@ namespace EWSoftware.EntityFramework
                 if(!properties.TryGetValue(key, out var p))
                     throw new InvalidOperationException($"The key property {key} was not found on the entity");
 
-                // If the property has a column attribute, use the name from it instead
-                var columnName = p.GetCustomAttribute<ColumnAttribute>();
+                // If the property has a parameter name or column attribute, use the name from it instead
+                string? columnName = p.GetCustomAttribute<ParameterNameAttribute>()?.Name ??
+                    p.GetCustomAttribute<ColumnAttribute>()?.Name;
 
                 // If the property value is null, use DBNull.Value to send a NULL to the database rather than
                 // using any default value assigned to the parameter.
-                var param = new SqlParameter($"@{parameterNamePrefix}{columnName?.Name ?? key}",
+                var param = new SqlParameter($"@{parameterNamePrefix}{columnName ?? key}",
                     p.GetValue(entity) ?? DBNull.Value);
                 param.SetParameterType(p.PropertyType);
                 command.Parameters.Add(param);
@@ -522,8 +534,9 @@ namespace EWSoftware.EntityFramework
                 {
                     var mp = methodParams[idx];
 
-                    // If the parameter has a column attribute, use the name from it instead
-                    var columnName = mp.GetCustomAttribute<ColumnAttribute>();
+                    // If the parameter has a parameter name or column attribute, use the name from it instead
+                    string? columnName = mp.GetCustomAttribute<ParameterNameAttribute>()?.Name ??
+                        mp.GetCustomAttribute<ColumnAttribute>()?.Name;
 
                     object? value = parameters[idx];
                     var paramType = mp.ParameterType.IsByRef ? mp.ParameterType.GetElementType()! : mp.ParameterType;
@@ -544,7 +557,7 @@ namespace EWSoftware.EntityFramework
 
                     // If the parameter value is null, use DBNull.Value to send a NULL to the database rather than
                     // using any default value assigned to the parameter.
-                    var p = new SqlParameter($"@{spName?.ParameterNamePrefix ?? contextParamPrefix?.Prefix}{columnName?.Name ?? mp.Name}",
+                    var p = new SqlParameter($"@{spName?.ParameterNamePrefix ?? contextParamPrefix?.Prefix}{columnName ?? mp.Name}",
                         value ?? DBNull.Value);
                     p.SetParameterType(paramType);
 
