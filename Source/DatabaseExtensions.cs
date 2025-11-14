@@ -2,7 +2,7 @@
 // System  : EWSoftware Entity Framework Utilities
 // File    : DatabaseExtensions.cs
 // Author  : Eric Woodruff
-// Updated : 10/17/2025
+// Updated : 11/04/2025
 //
 // This file contains a class that contains extension methods for database objects
 //
@@ -128,6 +128,10 @@ namespace EWSoftware.EntityFramework
             var connection = dataContext.Database.GetDbConnection();
             var command = connection.CreateCommand();
 
+            command.CommandTimeout = dataContext.Database.GetCommandTimeout() ?? command.CommandTimeout;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
+
             // If any properties have a column name attribute, add an entry for the alias
             foreach(var p in properties.Values.ToList())
             {
@@ -136,9 +140,6 @@ namespace EWSoftware.EntityFramework
                 if(cn != null)
                     properties[cn.Name!] = p;
             }
-
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
 
             if((parameters?.Length ?? 0) != 0)
             {
@@ -239,6 +240,7 @@ namespace EWSoftware.EntityFramework
             var connection = dataContext.Database.GetDbConnection();
             var command = connection.CreateCommand();
 
+            command.CommandTimeout = dataContext.Database.GetCommandTimeout() ?? command.CommandTimeout;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, storedProcName);
 
@@ -310,6 +312,7 @@ namespace EWSoftware.EntityFramework
 
             using var command = connection.CreateCommand();
 
+            command.CommandTimeout = dataContext.Database.GetCommandTimeout() ?? command.CommandTimeout;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, spNameAttr.StoredProcedureName);
 
@@ -517,6 +520,7 @@ namespace EWSoftware.EntityFramework
 #endif
             }
 
+            command.CommandTimeout = dataContext.Database.GetCommandTimeout() ?? command.CommandTimeout;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = CreateStoredProcedureName(dataContext, storedProcName!);
 
@@ -932,17 +936,14 @@ namespace EWSoftware.EntityFramework
         {
 #if !NETSTANDARD2_0
             ArgumentNullException.ThrowIfNull(dataContext);
-            ArgumentNullException.ThrowIfNull(commandText);
 #else
             if(dataContext == null)
                 throw new ArgumentNullException(nameof(dataContext));
-
-            if(commandText == null)
-                throw new ArgumentNullException(nameof(commandText));
 #endif
             var command = (SqlCommand)dataContext.Database.GetDbConnection().CreateCommand();
 
             command.CommandTimeout = dataContext.Database.GetCommandTimeout() ?? command.CommandTimeout;
+            command.CommandText = commandText ?? throw new ArgumentNullException(nameof(commandText));
 
             // If there's a space in the SQL string, assume the command type is text.  Otherwise, set it to
             // stored procedure.

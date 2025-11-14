@@ -149,7 +149,15 @@ representing the calling method.  Subsequent parameters, if any, are those passe
 The order of the parameters must match the order for the calling data context method.  All parameters are input
 only.  The return value of the data context method is an enumerable list of the given entity type created from
 the query's result set.</para>
-				
+
+				<alert class="important">
+					<para>The query extension methods return an enumerable list of the results.  Actual execution of the
+query is deferred until the results are requested.  As such, if your query performs any inserts, updates, or
+deletes in addition to returning a result set, you must call something like <codeInline>ToList()</codeInline>,
+<codeInline>Any()</codeInline>, or <codeInline>First()</codeInline> to ensure that the query is executed or the
+changes will not be made.</para>
+				</alert>
+
 				<code language="cs">
 // Execute a search stored procedure and return its result set
 public IEnumerable&lt;spTransactionListResult&gt; spTransactionList(int accountKey,

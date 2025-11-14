@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="534ab0c7-ec0c-4fb7-8d27-4dcb6ce97fb9" revisionNumber="1">
+	<developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+		<introduction>
+			<para>Changes made in this release:</para>
+		</introduction>
+
+		<section>
+			<content>
+
+				<list class="bullet">
+					<listItem>
+						<para>All commands created by the extension methods now use the connection command timeout.</para>
+					</listItem>
+				</list>
+
+			</content>
+		</section>
+
+		<relatedTopics>
+			<link xlink:href="73c00da4-99f1-47c5-aaf3-0bc31fcc8066" />
+		</relatedTopics>
+
+	</developerConceptualDocument>
+</topic>
