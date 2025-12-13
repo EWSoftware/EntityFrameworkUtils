@@ -1,10 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<topic id="3070da37-6ca8-48e0-b350-618489d67bc5" revisionNumber="1">
-  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
-		<!-- Ignore Spelling: bool foreach cts -->
-		
-		<introduction>
-      <para>When executing a stored procedure that does not return a result set or does not conform to the key
+---
+uid: 3070da37-6ca8-48e0-b350-618489d67bc5
+alt-uid: StoredProcedureMethods
+title: Stored Procedure Data Context Methods
+---
+<!-- Ignore Spelling: bool foreach cts -->
+
+When executing a stored procedure that does not return a result set or does not conform to the key
 field or parameter expectations of the other extension methods, you can add stored procedure methods to the
 Entity Framework data context that mimic the behavior of the stored procedure methods used by LINQ to SQL data
 contexts.  These are called just like normal class methods and are passed one or more parameters if needed.  The
@@ -12,32 +13,35 @@ data context method call is translated to a stored procedure call using the give
 stored procedure can be a non-query that performs an action such as an insert, update, delete, or a lookup and
 returns the number of rows affected, a return value, and/or output parameter values rather than a result set.
 For query stored procedure methods, the return value is an enumerable list of the given entity type created from
-the query's result set.</para>
+the query's result set.
 
-			<alert class="note">
-				<para>In the extension methods below, if the data context connection is not in an open state, it is
-opened temporarily while performing the action and closed again afterwards.</para>
 
-				<para>If change tracking is enabled on the data context, any entities loaded by
-<codeInline>ExecuteMethodQuery</codeInline> will be added to the change tracker.  Likewise, changes to the
-entities will be tracked and their state updated accordingly when added, updated, or deleted when submitting
-changes to the data context.  If change tracking is not enabled on the data context or the entity is marked with
-the <codeInline>NeverTrackAttribute</codeInline>, they will not be tracked.</para>
-			</alert>
-			
-			<autoOutline excludeRelatedTopics="true" lead="none" />
-		</introduction>
+> [!NOTE]
+> In the extension methods below, if the data context connection is not in an open state, it is
+> opened temporarily while performing the action and closed again afterwards.
+> 
+> 
+> If change tracking is enabled on the data context, any entities loaded by
+> `ExecuteMethodQuery` will be added to the change tracker.  Likewise, changes to the
+> entities will be tracked and their state updated accordingly when added, updated, or deleted when submitting
+> changes to the data context.  If change tracking is not enabled on the data context or the entity is marked with
+> the `NeverTrackAttribute`, they will not be tracked.
+> 
+>
 
-		<section address="MethodStoredProc">
-			<title>MethodStoredProcedureAttribute</title>
-			<content>
-				<para>This optional attribute is used to define the stored procedure name that will be called for the
+<autoOutline excludeRelatedTopics="true" lead="none" />
+
+
+## MethodStoredProcedureAttribute
+
+This optional attribute is used to define the stored procedure name that will be called for the
 data context method.  If not specified on a data context stored procedure method, the name of the stored
 procedure is assumed to be the same as the data context method's name.  If the method name ends with the value of 
-the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix</codeEntityReference>
-property, the suffix will be removed from the method name to obtain the stored procedure name.</para>
+the [](@P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix)
+property, the suffix will be removed from the method name to obtain the stored procedure name.
 
-				<code language="csharp">
+
+``` csharp
 // For these the stored procedure name is assumed to be the same as the method name	
 public int spStateCodeAddUpdate(string? oldState, string? state, string? stateDesc)
 {
@@ -49,10 +53,10 @@ public int spStateCodeDelete(string? state)
     return this.ExecuteMethodNonQuery(this.GetMethodInfo(), state).RowsAffected;
 }
 
-public IEnumerable&lt;spProductSearchResult&gt; spProductSearch(string? productName, string? categoryName,
+public IEnumerable<spProductSearchResult> spProductSearch(string? productName, string? categoryName,
     string? companyName)
 {
-    return this.ExecuteMethodQuery&lt;spProductSearchResult&gt;(this.GetMethodInfo(), productName,
+    return this.ExecuteMethodQuery<spProductSearchResult>(this.GetMethodInfo(), productName,
         categoryName, companyName);
 }
 
@@ -71,37 +75,38 @@ public int DeleteStateCode(string? state)
 }
 
 [MethodStoredProcedure("spProductSearch")]
-public IEnumerable&lt;ProductSearchResult&gt; SearchForProducts(string? productName, string? categoryName,
+public IEnumerable<ProductSearchResult> SearchForProducts(string? productName, string? categoryName,
     string? companyName)
 {
-    return this.ExecuteMethodQuery&lt;ProductSearchResult&gt;(this.GetMethodInfo(), productName,
+    return this.ExecuteMethodQuery<ProductSearchResult>(this.GetMethodInfo(), productName,
         categoryName, companyName);
 }
-				</code>
-			</content>
-		</section>
+				
+```
 
-		<section address="NonQueryMethods">
-			<title>Non-Query Stored Procedure Methods</title>
-			<content>
-				<para>A non-query stored procedure method is one that does not return a result set.  Instead it returns
+
+## Non-Query Stored Procedure Methods
+
+A non-query stored procedure method is one that does not return a result set.  Instead it returns
 the number of rows affected, a return value, and/or output parameter values.  The data context method calls the
-<codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ExecuteMethodNonQuery(Microsoft.EntityFrameworkCore.DbContext,System.Reflection.MethodInfo,System.Object[])</codeEntityReference>
-extension method.  The first parameter is always a <codeInline>MethodInfo</codeInline> instance representing the
+[](@M:EWSoftware.EntityFramework.DatabaseExtensions.ExecuteMethodNonQuery(Microsoft.EntityFrameworkCore.DbContext,System.Reflection.MethodInfo,System.Object[])){prefer-overload="true"}
+extension method.  The first parameter is always a `MethodInfo` instance representing the
 calling method.  Subsequent parameters, if any, are those passed to the data context method.  The order of the
 parameters must match the order for the calling data context method.  Any parameters for which output values are
 needed should be passed to the data context method by reference.  However, they are not passed by reference to
-the extension method.</para>
+the extension method.
 
-				<para>The return value is a tuple containing the number of rows affected assuming the stored procedure
-does not use <codeInline>SET NOCOUNT ON</codeInline>, the return value of the stored procedure if any, and a
+
+The return value is a tuple containing the number of rows affected assuming the stored procedure
+does not use `SET NOCOUNT ON`, the return value of the stored procedure if any, and a
 dictionary containing any output parameters indexed by method parameter name with the value being the output
 value from the stored procedure.  Typically, the data context method will return the rows affected or return
 value or use the output parameters to update the reference method parameters and return nothing.  However, unlike
 LINQ to SQL, the tuple itself or any combination of the above can be returned by the Entity Framework data
-context method.</para>
+context method.
 
-				<code language="cs">
+
+``` cs
 // Execute a stored procedure and return its return value
 public int spStockAdd(string symbol, string assetDescription, decimal currentBid,
   decimal currentAsk, decimal priceChangePercent)
@@ -129,85 +134,75 @@ public int spCheckForEmployeeSchedule(string bidGroup, int entityKey,
 
     return result.ReturnValue;
 }
-				</code>
-			</content>
-		</section>
+				
+```
 
-		<section address="QueryMethods">
-			<title>Query Stored Procedure Methods</title>
-			<content>
-				<para>A query stored procedure method is similar to the <codeInline>LoadByKey</codeInline> extension
+
+## Query Stored Procedure Methods
+
+A query stored procedure method is similar to the `LoadByKey` extension
 method except the parameters do not have to match the key properties on the entity such as a search query that
 allows for various criteria parameters.  If no parameters are specified it is equivalent to the
-<codeInline>LoadAll</codeInline> extension method so it is not necessary to create a separate data context method
-for those cases.</para>
+`LoadAll` extension method so it is not necessary to create a separate data context method
+for those cases.
 
-				<para>The data context method calls the
-<codeEntityReference qualifyHint="false" autoUpgrade="true">M:EWSoftware.EntityFramework.DatabaseExtensions.ExecuteMethodQuery``1(Microsoft.EntityFrameworkCore.DbContext,System.Reflection.MethodInfo,System.Object[])</codeEntityReference>				
-extension method. As above, the first parameter is always a <codeInline>MethodInfo</codeInline> instance
+
+The data context method calls the
+[](@M:EWSoftware.EntityFramework.DatabaseExtensions.ExecuteMethodQuery``1(Microsoft.EntityFrameworkCore.DbContext,System.Reflection.MethodInfo,System.Object[])){prefer-overload="true"}	extension method. As above, the first parameter is always a `MethodInfo` instance
 representing the calling method.  Subsequent parameters, if any, are those passed to the data context method.
 The order of the parameters must match the order for the calling data context method.  All parameters are input
 only.  The return value of the data context method is an enumerable list of the given entity type created from
-the query's result set.</para>
+the query's result set.
 
-				<alert class="important">
-					<para>The query extension methods return an enumerable list of the results.  Actual execution of the
-query is deferred until the results are requested.  As such, if your query performs any inserts, updates, or
-deletes in addition to returning a result set, you must call something like <codeInline>ToList()</codeInline>,
-<codeInline>Any()</codeInline>, or <codeInline>First()</codeInline> to ensure that the query is executed or the
-changes will not be made.</para>
-				</alert>
 
-				<code language="cs">
+> [!IMPORTANT]
+> The query extension methods return an enumerable list of the results.  Actual execution of the
+> query is deferred until the results are requested.  As such, if your query performs any inserts, updates, or
+> deletes in addition to returning a result set, you must call something like `ToList()`,
+> `Any()`, or `First()` to ensure that the query is executed or the
+> changes will not be made.
+> 
+>
+
+``` cs
 // Execute a search stored procedure and return its result set
-public IEnumerable&lt;spTransactionListResult&gt; spTransactionList(int accountKey,
+public IEnumerable<spTransactionListResult> spTransactionList(int accountKey,
   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
 {
-    return this.ExecuteMethodQuery&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
+    return this.ExecuteMethodQuery<spTransactionListResult>(this.GetMethodInfo(),
         accountKey, symbol, fromDate, toDate, txType);
 }
-				</code>
-			</content>
-		</section>
+				
+```
 
-		<section address="AsyncSupport">
-			<title>Differences for the Asynchronous Extension Methods</title>
-			<content>
-				<para>The asynchronous versions of the query and non-query extension methods require a few modifications
-in order to use them correctly.</para>
 
-				<list class="bullet">
-					<listItem>
-						<para>If you follow convention and suffix the method name with "Async", you can still omit the
-<codeInline>MethodStoredProcedureAttribute</codeInline> as the suffix will be removed automatically when the method
-name ends with the <codeEntityReference qualifyHint="false">P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix</codeEntityReference>
-property value.  If you use a suffix different from the property value, you will need to specify the attribute.</para>
-					</listItem>
+## Differences for the Asynchronous Extension Methods
 
-					<listItem>
-						<para>The method information must be obtained using the stack trace to find the actual called method.
+The asynchronous versions of the query and non-query extension methods require a few modifications
+in order to use them correctly.
+
+
+- If you follow convention and suffix the method name with "Async", you can still omit the
+`MethodStoredProcedureAttribute` as the suffix will be removed automatically when the method
+name ends with the [](@P:EWSoftware.EntityFramework.DatabaseExtensions.AsyncMethodSuffix)
+property value.  If you use a suffix different from the property value, you will need to specify the attribute.
+- The method information must be obtained using the stack trace to find the actual called method.
 This is required because the code within the stored procedure method is rewritten by the compiler and is
-placed inside a separate compiler generated method.  Always use the <codeInline>GetMethodInfo</codeInline>
-extension method as shown in the examples as it will work whether the method is synchronous or asynchronous.</para>
-					</listItem>
-
-					<listItem>
-						<para>The method parameters must be passed to the extension method as an array.  This is necessary
-as the last parameter for the extension method is the optional cancellation token.</para>
-					</listItem>
-
-					<listItem>
-						<para>A cancellation token cannot be passed explicitly to the stored procedure method as it will be
+placed inside a separate compiler generated method.  Always use the `GetMethodInfo`
+extension method as shown in the examples as it will work whether the method is synchronous or asynchronous.
+- The method parameters must be passed to the extension method as an array.  This is necessary
+as the last parameter for the extension method is the optional cancellation token.
+- A cancellation token cannot be passed explicitly to the stored procedure method as it will be
 considered one of the stored procedure parameters and the method parameter count will not match the number of
 parameters passed to the extension method.  The
-<codeEntityReference qualifyHint="false" autoUpgrade="true">M:System.Threading.Tasks.TaskAsyncEnumerableExtensions.WithCancellation``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)</codeEntityReference>
-extension method can be used instead to achieve the same result.</para>
-					</listItem>
-				</list>
+[](@M:System.Threading.Tasks.TaskAsyncEnumerableExtensions.WithCancellation``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)){prefer-overload="true"}
+extension method can be used instead to achieve the same result.
 
-				<para>Some examples are shown below.</para>
 
-				<code language="cs">
+Some examples are shown below.
+
+
+``` cs
 // Execute a stored procedure and return its return value.  We could omit the
 // attribute here since the name matches the method name with an "Async" suffix".
 [MethodStoredProcedure("spStockAdd")]
@@ -246,13 +241,13 @@ public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
 
 // Execute a search stored procedure and return its result set
 [MethodStoredProcedure("spTransactionList")]
-public IAsyncEnumerable&lt;spTransactionListResult&gt; spTransactionListAsync(int accountKey,
+public IAsyncEnumerable<spTransactionListResult> spTransactionListAsync(int accountKey,
   string? symbol, DateTime fromDate, DateTime toDate, string? txType)
 {
     // Note that we can't pass a cancellation token as it would look like one of
     // the method parameters.  Use the WithCancellation() extension method on the
     // call to this method instead.
-    return this.ExecuteMethodQueryAsync&lt;spTransactionListResult&gt;(this.GetMethodInfo(),
+    return this.ExecuteMethodQueryAsync<spTransactionListResult>(this.GetMethodInfo(),
         [accountKey, symbol, fromDate, toDate, txType]);
 }
 
@@ -267,12 +262,12 @@ await foreach(var t in dc.spTransactionListAsync(1, "MSFT", fromDate,
     ....
 }
 
-				</code>
-			</content>
-		</section>
-		
-		<relatedTopics>
-			<link xlink:href="48c2006f-d738-40a1-a486-d53fbdf7208c" />
-		</relatedTopics>
-  </developerConceptualDocument>
-</topic>
+				
+```
+
+
+## See Also
+
+
+**Other Resources**  
+[](@48c2006f-d738-40a1-a486-d53fbdf7208c)  
