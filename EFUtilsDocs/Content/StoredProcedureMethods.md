@@ -206,7 +206,7 @@ Some examples are shown below.
 // Execute a stored procedure and return its return value.  We could omit the
 // attribute here since the name matches the method name with an "Async" suffix".
 [MethodStoredProcedure("spStockAdd")]
-public async int spStockAddAsync(string symbol, string assetDescription,
+public async Task<int> spStockAddAsync(string symbol, string assetDescription,
   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
 {
     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol,
@@ -217,7 +217,7 @@ public async int spStockAddAsync(string symbol, string assetDescription,
 
 // Execute a stored procedure and return the number of rows affected
 [MethodStoredProcedure("spStockDelete")]
-public async int spStockDeleteAsync(string symbol)
+public async Task<int> spStockDeleteAsync(string symbol)
 {
     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol]);
 
@@ -227,7 +227,7 @@ public async int spStockDeleteAsync(string symbol)
 // Execute a stored procedure and return the output parameters via the ref parameters on
 // the method.  We can also return the stored procedure's return value or rows affected.
 [MethodStoredProcedure("spCheckForEmployeeSchedule")]
-public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
+public async Task<int> spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
   ref bool bidGroupScheduled, ref bool entityScheduled)
 {
     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [bidGroup,

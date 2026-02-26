@@ -2215,7 +2215,7 @@ namespace EWSoftware.EntityFramework
         /// // The stored procedure names are inferred from the method names without the "Async" suffix.
         /// 
         /// // Execute a stored procedure and return its return value asynchronously
-        /// public async int spStockAddAsync(string symbol, string assetDescription,
+        /// public async Task&lt;int&gt; spStockAddAsync(string symbol, string assetDescription,
         ///   decimal currentBid, decimal currentAsk, decimal priceChangePercent)
         /// {
         ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol,
@@ -2225,7 +2225,7 @@ namespace EWSoftware.EntityFramework
         /// }
         /// 
         /// // Execute a stored procedure and return the number of rows affected
-        /// public async int spStockDeleteAsync(string symbol)
+        /// public async Task&lt;int&gt; spStockDeleteAsync(string symbol)
         /// {
         ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [symbol]);
         ///     
@@ -2234,7 +2234,7 @@ namespace EWSoftware.EntityFramework
         /// 
         /// // Execute a stored procedure and return the output parameters via the ref parameters on
         /// // the method.  We can also return the stored procedure's return value or rows affected.
-        /// public async int spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
+        /// public async Task&lt;int&gt; spCheckForEmployeeScheduleAsync(string bidGroup, int entityKey,
         ///   ref bool bidGroupScheduled, ref bool entityScheduled)
         /// {
         ///     var result = await this.ExecuteMethodNonQueryAsync(this.GetMethodInfo(), [bidGroup, entityKey,
